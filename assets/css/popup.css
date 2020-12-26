@@ -1,0 +1,111 @@
+body {
+    font-family: Roboto, Arial, sans-serif;
+    margin: 0;
+
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+a {
+    color: #0a8dff;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #0060df;
+    text-decoration: underline;
+}
+
+header {
+    background-color: #dddddd;
+    padding: 2px 4px;
+    border: 0 solid #040404;
+    border-width: 0 0 1px 0;
+}
+
+header .popup-title {
+    color: #040404;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 0 12px;
+}
+
+header .popup-title-version {
+    color: #808080;
+    font-size: 14px;
+}
+
+footer {
+    background-color: #dddddd;
+    font-size: 12px;
+    border-top: 1px;
+    padding: 6px 6px;
+    border: 0 solid #040404;
+    border-width: 1px 0 0 0;
+}
+
+footer a {
+    padding: 0 6px;
+}
+
+.popup-settings {
+    background-color: #fafafa;
+    padding: 8px 10px;
+}
+
+.popup-settings h4 {
+    font-size: 16px;
+    margin: 12px 0px 6px 0px;
+}
+
+.popup-settings input,
+label {
+    font-size: 14px;
+    cursor: pointer;
+    vertical-align: middle;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.popup-lang-container {
+    height: 24px;
+    margin: 2px 0;
+}
+
+.popup-button-icon-remove {
+    float: right;
+    padding: 0;
+    color: #606060;
+    background-color: #ececec;
+    margin-left: 10px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #909090;
+    border-radius: 4px;
+}
+
+.popup-button-icon-add {
+    float: right;
+    padding: 0;
+    color: #065fd4;
+    background-color: #f9f9f9;
+    margin-left: 10px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #065fd4;
+    border-radius: 4px;
+}
+
+.popup-lang-select-container {
+    display: flex;
+    margin: 10px 0 0 0;
+    height: 24px;
+}
+
+.popup-lang-select {
+    margin-left: 16px;
+}

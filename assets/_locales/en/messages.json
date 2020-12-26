@@ -1,0 +1,35 @@
+{
+    "filter": {
+        "message": "FILTER"
+    },
+    "filter_comments": {
+        "message": "Filter comments"
+    },
+    "enable_by_default": {
+        "message": "Enable filter by default"
+    },
+    "languages": {
+        "message": "Languages"
+    },
+    "unknown": {
+        "message": "Unknown"
+    },
+    "select_language": {
+        "message": "─ Select Language ─"
+    },
+    "add_this_language": {
+        "message": "Add this language"
+    },
+    "remove_this_language": {
+        "message": "Remove this language"
+    },
+    "reset_settings": {
+        "message": "Reset settings"
+    },
+    "visit_homepage": {
+        "message": "Visit homepage"
+    },
+    "donate": {
+        "message": "Donate $$5"
+    }
+}

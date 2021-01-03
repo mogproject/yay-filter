@@ -1,0 +1,35 @@
+{
+    "filter": {
+        "message": "フィルター"
+    },
+    "filter_comments": {
+        "message": "コメント フィルター"
+    },
+    "enable_by_default": {
+        "message": "デフォルトで有効"
+    },
+    "languages": {
+        "message": "言語"
+    },
+    "unknown": {
+        "message": "判別不能"
+    },
+    "select_language": {
+        "message": "─ 言語を選択してください ─"
+    },
+    "add_this_language": {
+        "message": "この言語を追加"
+    },
+    "remove_this_language": {
+        "message": "この言語を削除"
+    },
+    "reset_settings": {
+        "message": "初期設定に戻す"
+    },
+    "visit_homepage": {
+        "message": "ホームページ"
+    },
+    "donate": {
+        "message": "Donate $$5"
+    }
+}

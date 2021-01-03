@@ -1,0 +1,43 @@
+{
+    "manifest_version": 2,
+    "name": "Yet Another YouTube Comment Filter",
+    "version": "0.1.0",
+    "description": "Filters comments on YouTube.",
+    "author": "Yosuke Mizutani",
+
+    "permissions": ["storage"],
+
+    "background": {
+        "scripts": ["js/browser-polyfill.min.js", "js/background.js"]
+    },
+
+    "content_scripts": [
+        {
+            "matches": ["https://www.youtube.com/*"],
+            "js": ["js/browser-polyfill.min.js", "js/content.js"],
+            "css": ["css/yay-filter.css"],
+            "run_at": "document_idle"
+        }
+    ],
+
+    "browser_action": {
+        "default_title": "Yay Filter",
+        "default_popup": "popup.html"
+    },
+
+    "icons": {
+        "16": "icons/yayFilterIcon16.png",
+        "32": "icons/yayFilterIcon32.png",
+        "48": "icons/yayFilterIcon48.png",
+        "96": "icons/yayFilterIcon96.png",
+        "128": "icons/yayFilterIcon128.png"
+    },
+    "homepage_url": "https://github.com/mogproject/yay-filter",
+    "default_locale": "en",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{d53eae58-4e50-ec4f-adce-12b5f3d57d24}",
+            "strict_min_version": "42.0"
+        }
+    }
+}

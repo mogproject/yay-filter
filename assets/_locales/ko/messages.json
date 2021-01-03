@@ -1,0 +1,35 @@
+{
+    "filter": {
+        "message": "필터"
+    },
+    "filter_comments": {
+        "message": "댓글 필터"
+    },
+    "enable_by_default": {
+        "message": "기본적으로 활성화"
+    },
+    "languages": {
+        "message": "언어"
+    },
+    "unknown": {
+        "message": "판단 할 수 없다"
+    },
+    "select_language": {
+        "message": "─ 언어 선택 ─"
+    },
+    "add_this_language": {
+        "message": "이 언어를 추가"
+    },
+    "remove_this_language": {
+        "message": "이 언어를 제거"
+    },
+    "reset_settings": {
+        "message": "설정 재설정"
+    },
+    "visit_homepage": {
+        "message": "홈페이지"
+    },
+    "donate": {
+        "message": "Donate $$5"
+    }
+}

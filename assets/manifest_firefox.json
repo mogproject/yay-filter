@@ -37,7 +37,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "{d53eae58-4e50-ec4f-adce-12b5f3d57d24}",
-            "strict_min_version": "42.0"
+            "strict_min_version": "57.0"
         }
     }
 }

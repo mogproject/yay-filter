@@ -20,7 +20,7 @@ This extension provides a comment filter on [YouTube](https://www.youtube.com/).
 -   Device: Desktop only
 -   Browser:
     -   Firefox (Recommended): version 54 or later
-    -   Google Chrome: version 51 or later
+    -   Google Chrome: version 57 or later
 
 Note: This extension uses a browser's internal Compact Language Detector (CLD). Filters may perform differently with different browser versions.
 

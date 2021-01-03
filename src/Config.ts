@@ -2,7 +2,7 @@
  * Configurations.
  */
 export const Config = {
-    version: '0.1.0',
+    version: '0.1.1',
     url: {
         targetUrl: 'www.youtube.com/watch',
         projectUrl: 'https://github.com/mogproject/yay-filter',

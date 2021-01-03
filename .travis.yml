@@ -4,7 +4,10 @@ node_js:
     - 'node'
 
 script:
-    - npm run test
+    - npm run coverage
+
+after_success:
+    - coveralls < coverage/lcov.info
 
 cache:
     directories:

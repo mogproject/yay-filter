@@ -2,7 +2,6 @@
     "name": "yay-filter",
     "version": "0.1.0",
     "description": "Yet another YouTube comment filter",
-
     "dependencies": {},
     "devDependencies": {
         "@types/chrome": "0.0.127",
@@ -10,6 +9,7 @@
         "@typescript-eslint/eslint-plugin": "^4.11.0",
         "@typescript-eslint/parser": "^4.11.0",
         "chrome": "^0.1.0",
+        "coveralls": "^3.1.0",
         "eslint": "^7.16.0",
         "eslint-config-prettier": "^7.1.0",
         "eslint-plugin-prettier": "^3.3.0",

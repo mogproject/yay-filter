@@ -20,3 +20,18 @@ describe('ArrayUtil#distinct', () => {
         expect(ArrayUtil.distinct(ys)).toStrictEqual([2, 1, 3, 5, 4]);
     });
 });
+
+describe('ArrayUtil#remove', () => {
+    test('element does not exist', () => {
+        const xs = [1, 2, 3];
+        ArrayUtil.remove(xs, 4);
+        expect(xs).toStrictEqual([1, 2, 3]);
+    });
+    test('duplicate elements', () => {
+        const xs = [1, 2, 3, 2];
+        ArrayUtil.remove(xs, 2);
+        expect(xs).toStrictEqual([1, 3, 2]);
+        ArrayUtil.remove(xs, 2);
+        expect(xs).toStrictEqual([1, 3]);
+    });
+});

@@ -3,6 +3,7 @@ import DomManager from './dom/DomManager';
 import Settings from './model/Settings';
 import ThreadManager from './model/ThreadManager';
 import LanguageDetector from './lang/LanguageDetector';
+import OutdatedRequestError from './model/OutdatedRequestError';
 
 /**
  * Manages the content-side app.
@@ -19,7 +20,7 @@ export default class App {
     /** Array of thread managers. */
     private threadManagers = new Map<HTMLElement, ThreadManager>();
     /** Flag for debugging. */
-    private debugLogEnabled = true;
+    private debugLogEnabled = false;
 
     // HTML Elements
     private yayFilterStatus: HTMLElement | null = null;
@@ -202,7 +203,9 @@ export default class App {
             this.getOrCreateThreadManager(t)[0]
                 .refreshAll()
                 .catch((error) => {
-                    // do nothing
+                    if (error instanceof OutdatedRequestError) {
+                        // do nothing
+                    } else if (this.debugLogEnabled) console.error(error);
                 }),
         );
     }
@@ -271,7 +274,9 @@ export default class App {
                 this.getOrCreateThreadManager(thread)[0]
                     .refreshAll()
                     .catch((error) => {
-                        // do nothing
+                        if (error instanceof OutdatedRequestError) {
+                            // do nothing
+                        } else if (this.debugLogEnabled) console.error(error);
                     });
             }
         }
@@ -286,7 +291,9 @@ export default class App {
         if (!this.isReady()) return;
         this.threadManagers.forEach((tm) =>
             tm.refreshFilter().catch((error) => {
-                // do nothing
+                if (error instanceof OutdatedRequestError) {
+                    // do nothing
+                } else if (this.debugLogEnabled) console.error(error);
             }),
         );
     }
@@ -315,7 +322,9 @@ export default class App {
 
         for (const tm of this.threadManagers.values())
             tm.refreshFilter().catch((error) => {
-                // do nothing
+                if (error instanceof OutdatedRequestError) {
+                    // do nothing
+                } else if (this.debugLogEnabled) console.error(error);
             });
     }
 

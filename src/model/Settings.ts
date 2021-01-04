@@ -1,6 +1,7 @@
 import { Config } from '../Config';
 import { LanguageDetectorResult } from '../lang/LanguageDetector';
 import ArrayUtil from '../util/ArrayUtil';
+import SetUtil from '../util/SetUtil';
 
 /**
  * Manages settings.
@@ -170,6 +171,8 @@ export default class Settings {
      * @return updated settings
      */
     setIncludeLanguage(language: string, value: boolean): Settings {
+        if (!this.listedLanguages.includes(language)) throw new Error('language is not listed');
+
         if (value) {
             this.includeLanguages.add(language);
         } else {
@@ -304,9 +307,9 @@ export default class Settings {
      * @param oldSettings old settings
      */
     shouldUpdateLanguageSettings(oldSettings: Settings): boolean {
-        if (oldSettings.includeLanguages != this.includeLanguages) return true;
-        if (oldSettings.includeUnknownLanguage != this.includeUnknownLanguage) return true;
-        if (oldSettings.percentageThreshold != this.percentageThreshold) return true;
+        if (!SetUtil.equals(oldSettings.includeLanguages, this.includeLanguages)) return true;
+        if (oldSettings.includeUnknownLanguage !== this.includeUnknownLanguage) return true;
+        if (oldSettings.percentageThreshold !== this.percentageThreshold) return true;
         return false;
     }
 }

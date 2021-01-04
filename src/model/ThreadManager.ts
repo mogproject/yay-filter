@@ -2,6 +2,7 @@ import { LanguageDetectorResult } from '../lang/LanguageDetector';
 import DomManager from '../dom/DomManager';
 import Settings from './Settings';
 import PromiseUtil from '../util/PromiseUtil';
+import OutdatedRequestError from './OutdatedRequestError';
 
 /**
  * Manages one comment thread.
@@ -62,7 +63,7 @@ export default class ThreadManager {
         if (this.age < 0) return Promise.resolve(); // already destroyed
 
         this.parsed = false;
-        const requestAge = ++this.age;
+        const requestAge = this.incrementAge();
 
         return Promise.resolve()
             .then(() => this.fetchText(requestAge))
@@ -80,11 +81,19 @@ export default class ThreadManager {
         if (this.age < 0) return Promise.resolve(); // already destroyed
         if (!this.parsed) return Promise.resolve(); // skip if refreshAll() is still working
 
-        const requestAge = ++this.age;
+        const requestAge = this.incrementAge();
 
         return Promise.resolve()
             .then(() => this.applyFilter(requestAge, this.getSettings()))
             .then(() => this.refreshStatus(requestAge));
+    }
+
+    /**
+     * Increments the current age and returns it.
+     * @return incremented age
+     */
+    incrementAge(): number {
+        return (this.age = (this.age + 1) % 1000000000);
     }
 
     /**
@@ -107,15 +116,21 @@ export default class ThreadManager {
      * @return Promise of the text content
      */
     private fetchText(age: number): Promise<string> {
-        if (age != this.age) throw new Error('outdated request');
+        if (age != this.age) throw new OutdatedRequestError(age, this.age);
         const text = DomManager.fetchTextContent(this.elem);
         this.text = text.substring(0, 20).replace(/\s/g, ' ');
         // console.debug(`fetchText() => ${this.text} ...`);
         return Promise.resolve(text);
     }
 
+    /**
+     * Detectes the language used in the given text.
+     * @param age requested age
+     * @param text text to analyze
+     * @return Promise of a detector result
+     */
     private detectLanguage(age: number, text: string): Promise<LanguageDetectorResult> {
-        if (age != this.age) throw new Error('outdated request');
+        if (age != this.age) throw new OutdatedRequestError(age, this.age);
         return this.detectLanguageFunc(text);
     }
 
@@ -125,7 +140,7 @@ export default class ThreadManager {
      * @param result detection result
      */
     private saveDetectedLanguages(age: number, result: LanguageDetectorResult): void {
-        if (age != this.age) throw new Error('outdated request');
+        if (age != this.age) throw new OutdatedRequestError(age, this.age);
         this.detectedLanguages = result;
         this.parsed = true;
     }
@@ -138,7 +153,7 @@ export default class ThreadManager {
      * @return Promise of the tuple of old and current filtering states
      */
     private applyFilter(age: number, settings: Settings | null): Promise<void> {
-        if (age != this.age) throw new Error('outdated request');
+        if (age != this.age) throw new OutdatedRequestError(age, this.age);
 
         const oldFiltered = this.isFiltered;
 
@@ -176,7 +191,7 @@ export default class ThreadManager {
      * @param age requested age
      */
     private refreshStatus(age: number): void {
-        if (age != this.age) throw new Error('outdated request');
+        if (age != this.age) throw new OutdatedRequestError(age, this.age);
         this.refreshStatusFunc();
     }
 }

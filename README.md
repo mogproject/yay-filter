@@ -1,5 +1,5 @@
 [![Mozilla Add-on](https://img.shields.io/amo/v/yay-filter?color=blue)](https://addons.mozilla.org/firefox/addon/yay-filter/)
-![Chrome Web Store](https://img.shields.io/chrome-web-store/v/kdmngkpgnecnahcpkdcmbcekonkcbdpc?color=blue)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/kdmngkpgnecnahcpkdcmbcekonkcbdpc?color=blue)](https://chrome.google.com/webstore/detail/yet-another-youtube-comme/kdmngkpgnecnahcpkdcmbcekonkcbdpc)
 [![Build Status](https://travis-ci.com/mogproject/yay-filter.svg?branch=main)](https://travis-ci.com/mogproject/yay-filter)
 [![Coverage Status](https://coveralls.io/repos/github/mogproject/yay-filter/badge.svg?branch=main)](https://coveralls.io/github/mogproject/yay-filter?branch=main)
 [![License](https://img.shields.io/badge/license-Apache2-brightgreen.svg)](http://choosealicense.com/licenses/apache-2.0/)

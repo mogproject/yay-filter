@@ -62,7 +62,7 @@ export default class ThreadManager {
         if (this.age < 0) return Promise.resolve(); // already destroyed
 
         this.parsed = false;
-        const requestAge = ++this.age;
+        const requestAge = this.incrementAge();
 
         return Promise.resolve()
             .then(() => this.fetchText(requestAge))
@@ -80,11 +80,19 @@ export default class ThreadManager {
         if (this.age < 0) return Promise.resolve(); // already destroyed
         if (!this.parsed) return Promise.resolve(); // skip if refreshAll() is still working
 
-        const requestAge = ++this.age;
+        const requestAge = this.incrementAge();
 
         return Promise.resolve()
             .then(() => this.applyFilter(requestAge, this.getSettings()))
             .then(() => this.refreshStatus(requestAge));
+    }
+
+    /**
+     * Increments the current age and returns it.
+     * @return incremented age
+     */
+    incrementAge(): number {
+        return (this.age = (this.age + 1) % 1000000000);
     }
 
     /**

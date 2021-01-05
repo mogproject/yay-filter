@@ -8,6 +8,9 @@
     "enable_by_default": {
         "message": "デフォルトで有効"
     },
+    "filter_replies": {
+        "message": "返信もフィルターする"
+    },
     "languages": {
         "message": "言語"
     },
@@ -22,6 +25,21 @@
     },
     "remove_this_language": {
         "message": "この言語を削除"
+    },
+    "blocked_words": {
+        "message": "ブロックする単語"
+    },
+    "blocked_words_description": {
+        "message": "各行に 1つずつ\nキーワードを記入してください"
+    },
+    "clear": {
+        "message": "消去"
+    },
+    "save": {
+        "message": "保存"
+    },
+    "save_blocked_words": {
+        "message": "ブロックする単語を保存"
     },
     "reset_settings": {
         "message": "初期設定に戻す"

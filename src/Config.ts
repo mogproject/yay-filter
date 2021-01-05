@@ -1,6 +1,10 @@
 /**
  * Configurations.
  */
+
+/** Variable defined by webpack.config.js. */
+declare const __DEBUG__: string;
+
 export const Config = {
     version: '0.1.1',
     url: {
@@ -10,6 +14,7 @@ export const Config = {
     },
     dom: {
         id: {
+            yayFilterLabel: 'yay-filter-label',
             yayFilterContainer: 'yay-filter-container',
             yayFilterStatus: 'yay-filter-status',
             yayFilterInfo: 'yay-filter-info',
@@ -20,8 +25,12 @@ export const Config = {
             ytCommentTitle: 'ytd-comments #title.ytd-comments-header-renderer',
             ytCommentContents: 'ytd-comments #contents.ytd-item-section-renderer',
             ytCommentThread: 'ytd-comments ytd-comment-thread-renderer',
+            ytCommentMain: '#comment',
+            ytCommentReplyRoot: '#replies',
+            ytCommentReplyContainer: '#replies #loaded-replies',
+            ytCommentReplyElement: '#replies #loaded-replies ytd-comment-renderer',
             ytCommentText: '#content-text',
-            ytCommentSortItems: 'ytd-comments yt-sort-filter-sub-menu-renderer paper-listbox a',
+            ytCommentTagName: 'ytd-comment-renderer'.toUpperCase(),
         },
         svg: {
             filterIcon:
@@ -32,6 +41,9 @@ export const Config = {
         delimiter: ' ',
         defaultPercentageThreshould: 20,
         maxLanguageDetectorCacheSize: 500,
+    },
+    debug: {
+        enabled: __DEBUG__,
     },
     // ['mo', 'Moldavian'],  // deprecated
     // ['sh', 'Serbo-Croatian'],  // deprecated

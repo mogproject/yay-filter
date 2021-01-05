@@ -13,11 +13,8 @@
     -khtml-user-select: none;
 }
 
-#yay-filter-container div {
-    display: flex;
-}
-
 #yay-filter-container svg {
+    position: absolute;
     width: 24px;
     height: 24px;
     margin-top: -4px;
@@ -25,8 +22,8 @@
     fill: var(--yt-spec-text-secondary);
 }
 
-#yay-filter-container span {
-    padding-top: 2px;
+#yay-filter-label {
+    margin-left: 28px;
 }
 
 #yay-filter-status {

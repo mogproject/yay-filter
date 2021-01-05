@@ -8,6 +8,9 @@
     "enable_by_default": {
         "message": "기본으로 활성화"
     },
+    "filter_replies": {
+        "message": "회신 필터링"
+    },
     "languages": {
         "message": "언어"
     },
@@ -22,6 +25,21 @@
     },
     "remove_this_language": {
         "message": "이 언어를 제거"
+    },
+    "blocked_words": {
+        "message": "차단 된 단어"
+    },
+    "blocked_words_description": {
+        "message": "각 줄에 하나씩 키워드를 입력하십시오"
+    },
+    "clear": {
+        "message": "맑은"
+    },
+    "save": {
+        "message": "저장"
+    },
+    "save_blocked_words": {
+        "message": "차단 된 단어 저장"
     },
     "reset_settings": {
         "message": "설정 초기화"

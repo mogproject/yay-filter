@@ -2,25 +2,29 @@ import { Config } from './Config';
 import DomManager from './dom/DomManager';
 import Settings from './model/Settings';
 import ThreadManager from './model/ThreadManager';
-import LanguageDetector from './lang/LanguageDetector';
-import OutdatedRequestError from './model/OutdatedRequestError';
+import AppContext from './model/AppContext';
+
+/**
+ * Unexpected URL error.
+ */
+class UnexpectedUrlError extends Error {
+    constructor(url: string) {
+        super(`unexpected URL: ${url}`);
+    }
+}
 
 /**
  * Manages the content-side app.
  */
 export default class App {
-    /** True if filtering is currently enabled. */
-    private enabled = true;
-    /** Current settings. */
-    private settings: Settings = new Settings();
-    /** Language detector. */
-    private languageDetector = new LanguageDetector(Config.settings.maxLanguageDetectorCacheSize);
+    /** Application context. */
+    private context = new AppContext();
+    /** True if reload() has been called. */
+    private loaded = false;
     /** Thread list observer. */
     private threadListObserver: MutationObserver;
-    /** Array of thread managers. */
+    /** Map of thread managers. */
     private threadManagers = new Map<HTMLElement, ThreadManager>();
-    /** Flag for debugging. */
-    private debugLogEnabled = false;
 
     // HTML Elements
     private yayFilterStatus: HTMLElement | null = null;
@@ -43,9 +47,19 @@ export default class App {
     }
 
     /**
+     * Manually load the app.
+     */
+    load(): void {
+        if (!this.loaded) this.reload('startup');
+    }
+
+    /**
      * Reloads the app.
      */
     reload(reason: string): void {
+        // this.log(`reload(${reason})`);
+
+        this.loaded = true;
         Promise.resolve()
             .then(() => this.verifyUrl(`${window.location.host}${window.location.pathname}`))
             .then(() => this.startInitialization())
@@ -56,7 +70,9 @@ export default class App {
             .then((elem) => this.injectFilterButton(elem))
             .then(() => this.refresh())
             .catch((error) => {
-                if (this.debugLogEnabled) console.error(error);
+                if (!(error instanceof UnexpectedUrlError)) {
+                    if (Config.debug.enabled) console.error(error);
+                }
             });
     }
 
@@ -97,7 +113,7 @@ export default class App {
      * @param url URL to check
      */
     private verifyUrl(url: string): void {
-        if (url != Config.url.targetUrl) throw new Error('unexpected URL');
+        if (url != Config.url.targetUrl) throw new UnexpectedUrlError(url);
     }
 
     /**
@@ -108,7 +124,7 @@ export default class App {
         const p = new Promise<void>((resolve, reject) => {
             Settings.loadFromStorage().then(
                 (s) => {
-                    this.settings = s;
+                    this.context.settings = s;
                     resolve();
                 },
                 (error) => reject(error),
@@ -121,7 +137,7 @@ export default class App {
      * Sets the default enabled setting.
      */
     private setEnabledFromDefault(): void {
-        this.enabled = this.settings.isEnabledDefault();
+        this.context.enabled = this.context.settings.isEnabledDefault();
     }
 
     /**
@@ -129,6 +145,8 @@ export default class App {
      * @return Promise of the comment container
      */
     private findCommentContainer(): Promise<HTMLElement> {
+        // this.log('findCommentContainer');
+
         const p = new Promise<HTMLElement>((resolve, reject) => {
             DomManager.withCommentContainer((elem) => {
                 if (elem == null) {
@@ -147,6 +165,12 @@ export default class App {
      * @return Promise of the comment header element
      */
     private findCommentHeader(commentContainer: HTMLElement): Promise<HTMLElement> {
+        // this.log('findCommentHeader');
+
+        // check if it already exists (this can happen by a browser's "go back" button, etc.)
+        const e = DomManager.findCommentHeader();
+        if (e != null) return Promise.resolve(e);
+
         const p = new Promise<HTMLElement>((resolve, reject) => {
             const observer = new MutationObserver((m, o) => {
                 // check if the comment header exists
@@ -169,6 +193,8 @@ export default class App {
      * @param commentHeader comment header
      */
     private injectFilterButton(commentHeader: HTMLElement): void {
+        // this.log('injectFilterButton()');
+
         // create filter button
         this.clearYayFilterContainer();
         const [c, s, i] = DomManager.createYayFilterContainer(() => this.toggleEnabled());
@@ -187,6 +213,8 @@ export default class App {
      * Clears outdated information and stops observers.
      */
     private startInitialization(): void {
+        // this.log('startInitialization');
+
         this.stopObservers();
         this.yayFilterStatus = this.yayFilterInfo = this.threadContainer = null;
     }
@@ -195,17 +223,17 @@ export default class App {
      * Refreshes all threads.
      */
     private refresh(): void {
+        if (this.threadContainer == null) return;
+
         this.stopObservers();
         this.startObservers(); // observer must start before finding threads
 
         // process already-rendendered threads
-        DomManager.findCommentThreads().forEach((t) =>
-            this.getOrCreateThreadManager(t)[0]
-                .refreshAll()
+        DomManager.findCommentThreads(this.threadContainer).forEach((t) =>
+            this.getOrCreateThreadManager(t)
+                .refreshMain()
                 .catch((error) => {
-                    if (error instanceof OutdatedRequestError) {
-                        // do nothing
-                    } else if (this.debugLogEnabled) console.error(error);
+                    if (Config.debug.enabled) console.error(error);
                 }),
         );
     }
@@ -224,6 +252,8 @@ export default class App {
      * Updates the status labels.
      */
     private refreshStatus(): void {
+        if (this.threadContainer == null) return;
+
         const st = this.yayFilterStatus;
         const info = this.yayFilterInfo;
 
@@ -231,16 +261,16 @@ export default class App {
         // const info = DomManager.findYayFilterInfo();
 
         if (!st || !info) {
-            // console.log(st, info);
+            // console.debug(st, info);
             return;
         }
 
         // FIXME: count incrementally for better performance
-        const threads = [...DomManager.findCommentThreads()];
+        const threads = [...DomManager.findCommentThreads(this.threadContainer)];
         const numVisible = threads.filter((e) => e.style.display != 'none').length;
 
-        DomManager.replaceText(st, this.enabled ? 'ON' : 'OFF');
-        DomManager.replaceText(info, this.enabled ? `(${numVisible} / ${threads.length})` : '');
+        DomManager.replaceText(st, this.context.enabled ? 'ON' : 'OFF');
+        DomManager.replaceText(info, this.context.enabled ? `(${numVisible} / ${threads.length})` : '');
     }
 
     //--------------------------------------------------------------------------
@@ -271,12 +301,10 @@ export default class App {
 
             // create new thread managers
             for (const thread of mutation.addedNodes as NodeListOf<HTMLElement>) {
-                this.getOrCreateThreadManager(thread)[0]
-                    .refreshAll()
+                this.getOrCreateThreadManager(thread)
+                    .refreshMain()
                     .catch((error) => {
-                        if (error instanceof OutdatedRequestError) {
-                            // do nothing
-                        } else if (this.debugLogEnabled) console.error(error);
+                        if (Config.debug.enabled) console.error(error);
                     });
             }
         }
@@ -286,16 +314,15 @@ export default class App {
      * Toggles the filtering enabled setting.
      */
     toggleEnabled(): void {
-        this.enabled = !this.enabled;
+        this.context.enabled = !this.context.enabled;
 
         if (!this.isReady()) return;
         this.threadManagers.forEach((tm) =>
             tm.refreshFilter().catch((error) => {
-                if (error instanceof OutdatedRequestError) {
-                    // do nothing
-                } else if (this.debugLogEnabled) console.error(error);
+                if (Config.debug.enabled) console.error(error);
             }),
         );
+        if (this.threadManagers.size == 0) this.refreshStatus();
     }
 
     /**
@@ -303,12 +330,12 @@ export default class App {
      * @param func function to update settings
      */
     private updateSettings(func: (s: Settings) => Settings): void {
-        if (!this.enabled) {
-            this.settings = func(this.settings);
+        if (!this.context.enabled) {
+            this.context.settings = func(this.context.settings);
         } else {
-            const oldSettings = this.settings.copy();
-            this.settings = func(this.settings);
-            if (this.settings.shouldUpdateLanguageSettings(oldSettings)) {
+            const oldSettings = this.context.settings.copy();
+            this.context.settings = func(this.context.settings);
+            if (this.context.settings.shouldRefreshFilter(oldSettings)) {
                 this.handleSettingsUpdate();
             }
         }
@@ -320,12 +347,11 @@ export default class App {
     private handleSettingsUpdate(): void {
         if (!this.isReady()) return;
 
-        for (const tm of this.threadManagers.values())
+        for (const tm of this.threadManagers.values()) {
             tm.refreshFilter().catch((error) => {
-                if (error instanceof OutdatedRequestError) {
-                    // do nothing
-                } else if (this.debugLogEnabled) console.error(error);
+                if (Config.debug.enabled) console.error(error);
             });
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -335,21 +361,16 @@ export default class App {
     /**
      * Gets or creates a thread manager.
      * @param thread thread container
-     * @return tuple of a thread manager and if the manager is new
+     * @return thread manager
      */
-    private getOrCreateThreadManager(thread: HTMLElement): [ThreadManager, boolean] {
+    private getOrCreateThreadManager(thread: HTMLElement): ThreadManager {
         const tm = this.threadManagers.get(thread);
         if (tm === undefined) {
-            const t = new ThreadManager(
-                thread,
-                () => (this.enabled ? this.settings : null),
-                (text: string) => this.languageDetector.detectLanguage(text),
-                () => this.refreshStatus(),
-            );
+            const t = new ThreadManager(this.context, thread, () => this.refreshStatus());
             this.threadManagers.set(thread, t);
-            return [t, true];
+            return t;
         } else {
-            return [tm, false];
+            return tm;
         }
     }
 
@@ -358,7 +379,7 @@ export default class App {
      * @param text text to output
      */
     private log(text: string): void {
-        if (this.debugLogEnabled) {
+        if (Config.debug.enabled) {
             const date = new Date();
             console.debug(`[${date.toISOString()}] ${text}`);
         }

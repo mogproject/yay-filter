@@ -40,6 +40,7 @@ header .popup-title-version {
 footer {
     background-color: #dddddd;
     font-size: 12px;
+    margin-top: 12px;
     border-top: 1px;
     padding: 6px 6px;
     border: 0 solid #040404;
@@ -71,33 +72,76 @@ label {
     -khtml-user-select: none;
 }
 
+.popup-settings textarea {
+    font-size: 14px;
+}
+
+.popup-settings input[type='button'],
+input[type='submit'] {
+    color: #065fd4;
+    background-color: #f9f9f9;
+    border: 1px solid #065fd4;
+    float: right;
+    padding: 0;
+    height: 24px;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+.popup-settings input[type='button']:hover,
+input[type='submit']:hover {
+    color: #f9f9f9;
+    background-color: #0a8dff;
+}
+
+.popup-settings input[type='button']:disabled,
+input[type='submit']:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.popup-settings input[type='button']:disabled:hover,
+input[type='submit']:disabled:hover {
+    color: #065fd4;
+    background-color: #f9f9f9;
+}
+
+#popup-form-blocked-words div {
+    padding-left: 16px;
+}
+
+.popup-settings textarea {
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
 .popup-lang-container {
     height: 24px;
     margin: 2px 0;
 }
 
 .popup-button-icon-remove {
-    float: right;
-    padding: 0;
-    color: #606060;
-    background-color: #ececec;
-    margin-left: 10px;
+    color: #606060 !important;
+    background-color: #ececec !important;
+    border: 1px solid #909090 !important;
     width: 24px;
-    height: 24px;
-    border: 1px solid #909090;
-    border-radius: 4px;
+}
+
+.popup-button-icon-remove:hover {
+    color: #f9f9f9 !important;
+    background-color: #0a8dff !important;
+    border: 1px solid #065fd4 !important;
 }
 
 .popup-button-icon-add {
-    float: right;
-    padding: 0;
-    color: #065fd4;
-    background-color: #f9f9f9;
-    margin-left: 10px;
     width: 24px;
-    height: 24px;
-    border: 1px solid #065fd4;
-    border-radius: 4px;
+}
+
+.popup-button-save {
+    width: 72px;
 }
 
 .popup-lang-select-container {
@@ -108,4 +152,9 @@ label {
 
 .popup-lang-select {
     margin-left: 16px;
+}
+
+.popup-button-container {
+    margin: 6px 0 0 0;
+    height: 24px;
 }

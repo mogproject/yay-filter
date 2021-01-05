@@ -8,6 +8,9 @@
     "enable_by_default": {
         "message": "Enable filter by default"
     },
+    "filter_replies": {
+        "message": "Filter replies"
+    },
     "languages": {
         "message": "Languages"
     },
@@ -22,6 +25,21 @@
     },
     "remove_this_language": {
         "message": "Remove this language"
+    },
+    "blocked_words": {
+        "message": "Blocked words"
+    },
+    "blocked_words_description": {
+        "message": "Place each word on a new line."
+    },
+    "clear": {
+        "message": "Clear"
+    },
+    "save": {
+        "message": "Save"
+    },
+    "save_blocked_words": {
+        "message": "Save blocked words"
     },
     "reset_settings": {
         "message": "Reset settings"

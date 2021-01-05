@@ -93,39 +93,66 @@ export default class DomManager {
     }
 
     /**
+     * Gets the thread container.
+     * @param body document body element
+     * @return thread container element
+     */
+    static getCommentThreadContainer(body: HTMLElement = document.body): HTMLElement {
+        return this.getElementByQuery(Config.dom.selector.ytCommentContents, body);
+    }
+
+    /**
      * Finds all comment threads.
      * @return list of thread containers
      */
-    static findCommentThreads(): NodeListOf<HTMLElement> {
-        return document.querySelectorAll(Config.dom.selector.ytCommentThread);
+    static findCommentThreads(threadContainer: HTMLElement): NodeListOf<HTMLElement> {
+        return threadContainer.querySelectorAll(Config.dom.selector.ytCommentThread);
     }
 
     /**
-     * Gets the thread container.
-     * @return thread container element
+     * Finds all loaded reply elements.
+     * @param thread thread
+     * @return list of reply elements
      */
-    static getCommentThreadContainer(): HTMLElement {
-        return this.getElementByQuery(Config.dom.selector.ytCommentContents);
+    static findReplyElements(thread: HTMLElement): NodeListOf<HTMLElement> {
+        return thread.querySelectorAll(Config.dom.selector.ytCommentReplyElement);
     }
 
     /**
-     * Fetches the text content of the thread.
+     * Gets the main comment container.
+     * @param thread thread
+     * @return comment container element
+     */
+    static getMainCommentContainer(thread: HTMLElement): HTMLElement {
+        return this.getElementByQuery(Config.dom.selector.ytCommentMain, thread);
+    }
+
+    /**
+     * Finds the reply container of the given thread.
+     * @param thread thread
+     * @return reply container or null if not found
+     */
+    static findReplyContainer(thread: HTMLElement): HTMLElement | null {
+        return thread.querySelector(Config.dom.selector.ytCommentReplyContainer);
+    }
+
+    /**
+     * Fetches the text content of the comment element.
      * @param thread thread container
      * @return text
      */
-    // FIXME: Resulting text may contain replies
     static fetchTextContent(thread: HTMLElement): string {
         const text = thread.querySelector(Config.dom.selector.ytCommentText);
-        if (text == null || text.textContent == null) return '';
-        return text.textContent;
+        return this.cleanText(text?.textContent);
     }
 
     /**
-     * Finds the sort options from the page.
-     * @return list of option containers
+     * Cleans whitespace in the text.
+     * @param text input text
      */
-    static findSortItems(): NodeListOf<HTMLElement> {
-        return document.querySelectorAll(Config.dom.selector.ytCommentSortItems);
+    static cleanText(text: string | null | undefined): string {
+        if (text === undefined || text == null) return '';
+        return text.replace(/\s+/g, ' ');
     }
 
     //--------------------------------------------------------------------------
@@ -151,7 +178,9 @@ export default class DomManager {
         const parser = new DOMParser();
         const svg = parser.parseFromString(Config.dom.svg.filterIcon, 'image/svg+xml');
         div.appendChild(svg.documentElement);
-        div.appendChild(this.createElementWithText('span', chrome.i18n.getMessage('filter')));
+        const filterLabel = this.createElementWithText('span', chrome.i18n.getMessage('filter'));
+        filterLabel.id = Config.dom.id.yayFilterLabel;
+        div.appendChild(filterLabel);
         const filterStatus = document.createElement('span') as HTMLSpanElement;
         filterStatus.id = Config.dom.id.yayFilterStatus;
         div.appendChild(filterStatus);
@@ -174,14 +203,10 @@ export default class DomManager {
      * @param checked checked
      * @param text text
      * @param onChanged on changed
-     * @return tuple of input and label
+     * @return div element containing input and label elements
      */
-    static createCheckbox(
-        id: string,
-        checked: boolean,
-        text: string,
-        onChanged: (ev: Event) => void,
-    ): [HTMLInputElement, HTMLLabelElement] {
+    static createCheckbox(id: string, checked: boolean, text: string, onChanged: (ev: Event) => void): HTMLDivElement {
+        const container = document.createElement('div') as HTMLDivElement;
         const checkbox = document.createElement('input') as HTMLInputElement;
         checkbox.type = 'checkbox';
         checkbox.id = id;
@@ -192,7 +217,10 @@ export default class DomManager {
         label.htmlFor = checkbox.id;
         label.appendChild(document.createTextNode(text));
 
-        return [checkbox, label];
+        container.appendChild(checkbox);
+        container.appendChild(label);
+
+        return container;
     }
 
     /**
@@ -276,6 +304,18 @@ export default class DomManager {
             onSubmit();
             return false;
         });
+        return elem;
+    }
+
+    /**
+     * Creates a div element.
+     * @param innerElems list of child elements
+     * @param className class name of the div
+     */
+    static createDiv(innerElems: HTMLElement[], className = ''): HTMLDivElement {
+        const elem = document.createElement('div') as HTMLDivElement;
+        if (className) elem.className = className;
+        innerElems.forEach((e) => elem.appendChild(e));
         return elem;
     }
 

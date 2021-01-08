@@ -18,7 +18,9 @@ export default class Settings {
     /** True if the comment with unknown languages should be visible. */
     private includeUnknownLanguage: boolean;
     /** Words to exclude. */
-    private excludeWords: string[];
+    private blockedWords: string[];
+    /** True if reply comments should be filtered. */
+    private filterReplies: boolean;
 
     /**
      * Constructs settings.
@@ -36,6 +38,7 @@ export default class Settings {
         listedLanguages?: Array<string> | undefined,
         percentageThreshold?: number | undefined,
         excludeWords?: string[] | undefined,
+        filterReplies?: boolean | undefined,
     ) {
         // enabled default: default true
         this.enabledDefault = enabledDefault === undefined ? true : enabledDefault;
@@ -64,7 +67,10 @@ export default class Settings {
             percentageThreshold === undefined ? Config.settings.defaultPercentageThreshould : percentageThreshold;
 
         // exclude words: default empty
-        this.excludeWords = excludeWords === undefined ? [] : excludeWords;
+        this.blockedWords = excludeWords === undefined ? [] : excludeWords;
+
+        // filter replies: default false
+        this.filterReplies = filterReplies === undefined ? false : filterReplies;
     }
 
     /**
@@ -78,7 +84,8 @@ export default class Settings {
             this.includeUnknownLanguage,
             [...this.listedLanguages],
             this.percentageThreshold,
-            [...this.excludeWords],
+            [...this.blockedWords],
+            this.filterReplies,
         );
     }
 
@@ -97,7 +104,8 @@ export default class Settings {
             iu: this.includeUnknownLanguage,
             ll: this.listedLanguages,
             pt: this.percentageThreshold,
-            ew: this.excludeWords,
+            bw: this.blockedWords,
+            fr: this.filterReplies,
         });
     }
 
@@ -110,7 +118,7 @@ export default class Settings {
         if (s === undefined) return new Settings();
 
         const obj = JSON.parse(s);
-        return new Settings(obj.ed, obj.il, obj.iu, obj.ll, obj.pt, obj.ew);
+        return new Settings(obj.ed, obj.il, obj.iu, obj.ll, obj.pt, obj.bw, obj.fr);
     }
 
     /**
@@ -256,9 +264,48 @@ export default class Settings {
     /**
      * Updates the percentage threshold.
      * @param value new percentage threshold
+     * @return updated settings
      */
     setPercentageThreshold(value: number): Settings {
         this.percentageThreshold = Math.max(0, Math.min(100, value));
+        return this;
+    }
+
+    /**
+     * Returns if replies should be filtered.
+     * @return filter replies
+     */
+    getFilterReplies(): boolean {
+        return this.filterReplies;
+    }
+
+    /**
+     * Updates if replies should be filtered.
+     * @param value new filter replies
+     * @return updated settings
+     */
+    setFilterReplies(value: boolean): Settings {
+        this.filterReplies = value;
+        return this;
+    }
+
+    /**
+     * Returns the list of blocked words.
+     * @return blocked word list
+     */
+    getBlockedWords(): string[] {
+        return this.blockedWords;
+    }
+
+    /**
+     * Updates the list of blocked words.
+     * @param words word list
+     * @return updated settings
+     */
+    setBlockedWords(words: string[]): Settings {
+        // clean whitespace
+        const cleaned = words.map((s) => s.replace(/\s+/g, ' ').trim()).filter((s) => s);
+        this.blockedWords = cleaned;
         return this;
     }
 
@@ -299,17 +346,22 @@ export default class Settings {
      */
     shouldFilterByWord(text: string): boolean {
         const t = text.toLocaleLowerCase();
-        return this.excludeWords.some((w) => t.includes(w.toLocaleLowerCase()));
+        return this.blockedWords.some((w) => t.includes(w.toLocaleLowerCase()));
     }
 
     /**
-     * Determines if the content side needs to re-render all threads by comparing with old settings.
+     * Determines if the content side needs to refresh filtering by comparing with old settings.
      * @param oldSettings old settings
+     * @return true if the content script should refresh
      */
-    shouldUpdateLanguageSettings(oldSettings: Settings): boolean {
+    shouldRefreshFilter(oldSettings: Settings): boolean {
         if (!SetUtil.equals(oldSettings.includeLanguages, this.includeLanguages)) return true;
         if (oldSettings.includeUnknownLanguage !== this.includeUnknownLanguage) return true;
         if (oldSettings.percentageThreshold !== this.percentageThreshold) return true;
+
+        // FIXME: improve performance?
+        if (!SetUtil.equals(new Set(oldSettings.blockedWords), new Set(this.blockedWords))) return true;
+        if (oldSettings.filterReplies !== this.filterReplies) return true;
         return false;
     }
 }

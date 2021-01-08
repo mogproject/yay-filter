@@ -8,16 +8,18 @@ describe('Settings#constructor', () => {
         Object.assign(Navigator, { languages: () => ['en-US', 'en'] });
 
         let s = new Settings(undefined, undefined, undefined, undefined, undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en"],"pt":20,"ew":[]}');
+        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en"],"pt":20,"bw":[],"fr":false}');
 
         s = new Settings(undefined, ['ja', 'en', 'de'], undefined, undefined, undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["ja","en","de"],"iu":false,"ll":["ja","en","de"],"pt":20,"ew":[]}');
+        expect(s.toJSON()).toBe(
+            '{"ed":true,"il":["ja","en","de"],"iu":false,"ll":["ja","en","de"],"pt":20,"bw":[],"fr":false}',
+        );
 
         s = new Settings(undefined, undefined, undefined, ['ja', 'de'], undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en","ja","de"],"pt":20,"ew":[]}');
+        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en","ja","de"],"pt":20,"bw":[],"fr":false}');
 
         s = new Settings(undefined, undefined, undefined, ['ja', 'de', 'en'], undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["ja","de","en"],"pt":20,"ew":[]}');
+        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["ja","de","en"],"pt":20,"bw":[],"fr":false}');
 
         s = new Settings(
             undefined,
@@ -28,7 +30,7 @@ describe('Settings#constructor', () => {
             undefined,
         );
         expect(s.toJSON()).toBe(
-            '{"ed":true,"il":["es","ja","en"],"iu":false,"ll":["es","ja","de","en"],"pt":20,"ew":[]}',
+            '{"ed":true,"il":["es","ja","en"],"iu":false,"ll":["es","ja","de","en"],"pt":20,"bw":[],"fr":false}',
         );
     });
 });
@@ -40,10 +42,10 @@ describe('Settings#copy', () => {
         t.setEnabledDefault(true).removeListedLanguage('en').addListedLanguage('fr', true).setPercentageThreshold(18);
 
         expect(s.toJSON()).toBe(
-            '{"ed":false,"il":["en","de","ja"],"iu":false,"ll":["en","de","ja","es"],"pt":15,"ew":["XYZ","abc"]}',
+            '{"ed":false,"il":["en","de","ja"],"iu":false,"ll":["en","de","ja","es"],"pt":15,"bw":["XYZ","abc"],"fr":false}',
         );
         expect(t.toJSON()).toBe(
-            '{"ed":true,"il":["de","ja","fr"],"iu":false,"ll":["de","ja","es","fr"],"pt":18,"ew":["XYZ","abc"]}',
+            '{"ed":true,"il":["de","ja","fr"],"iu":false,"ll":["de","ja","es","fr"],"pt":18,"bw":["XYZ","abc"],"fr":false}',
         );
     });
 });
@@ -212,7 +214,7 @@ describe('Settings#shouldFilterByWord', () => {
     });
 });
 
-describe('Settings#shouldUpdateLanguageSettings', () => {
+describe('Settings#shouldRefreshFilter', () => {
     test('normal cases', () => {
         const s1 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 20, []);
         const s2 = new Settings(true, ['en'], false, ['en', 'de', 'ja'], 20, []);
@@ -221,12 +223,15 @@ describe('Settings#shouldUpdateLanguageSettings', () => {
         const s5 = new Settings(false, ['en', 'de'], true, ['en', 'de', 'ja'], 20, []);
         const s6 = new Settings(false, ['de', 'en'], true, ['de', 'en', 'ja'], 20, []);
         const s7 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 21, []);
-        expect(s1.shouldUpdateLanguageSettings(s2)).toBeFalsy();
-        expect(s2.shouldUpdateLanguageSettings(s3)).toBeFalsy();
-        expect(s1.shouldUpdateLanguageSettings(s4)).toBeTruthy();
-        expect(s1.shouldUpdateLanguageSettings(s5)).toBeTruthy();
-        expect(s5.shouldUpdateLanguageSettings(s6)).toBeFalsy();
-        expect(s1.shouldUpdateLanguageSettings(s7)).toBeTruthy();
+        const s8 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 20, [], true);
+        expect(s1.shouldRefreshFilter(s2)).toBeFalsy();
+        expect(s2.shouldRefreshFilter(s3)).toBeFalsy();
+        expect(s1.shouldRefreshFilter(s4)).toBeTruthy();
+        expect(s1.shouldRefreshFilter(s5)).toBeTruthy();
+        expect(s5.shouldRefreshFilter(s6)).toBeFalsy();
+        expect(s1.shouldRefreshFilter(s7)).toBeTruthy();
+        expect(s1.shouldRefreshFilter(s8)).toBeTruthy();
+        expect(s8.shouldRefreshFilter(s1)).toBeTruthy();
     });
 });
 

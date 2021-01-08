@@ -1,33 +1,26 @@
-import { LanguageDetectorResult } from '../lang/LanguageDetector';
 import DomManager from '../dom/DomManager';
-import Settings from './Settings';
-import PromiseUtil from '../util/PromiseUtil';
-import OutdatedRequestError from './OutdatedRequestError';
+import { Config } from '../Config';
+import AppContext from './AppContext';
+import CommentInfo from './CommentInfo';
 
 /**
  * Manages one comment thread.
  */
 export default class ThreadManager {
-    /** True if the language detector has already processed this thread. */
-    private parsed = false;
-    /** True if the extension has already waited for YouTube's rendering. */
-    private waited = false;
-    /** True if the thread is currently hidden. */
-    private isFiltered;
+    /** Application context. */
+    private context: AppContext;
     /** Reference to the thread container element. */
     private elem: HTMLElement;
-    /** Cached result of the language detection. */
-    private detectedLanguages: LanguageDetectorResult | null = null;
-    /** Text content observer. */
-    private observer: MutationObserver;
-    /** Keeps track of refresh timings. */
-    private age = 0;
-    /** Part of the text. */
-    private text = '';
+    /** Main comment observer. */
+    private mainCommentObserver: MutationObserver;
+    /** Reply comment observer. */
+    private replyCommentObserver: MutationObserver;
+    /** Main comment information. */
+    private mainComment: CommentInfo;
+    /** Map of reply information. */
+    private replies = new Map<HTMLElement, CommentInfo>();
 
     // Functions
-    private getSettings: () => Settings | null;
-    private detectLanguageFunc: (text: string) => Promise<LanguageDetectorResult>;
     private refreshStatusFunc: () => void;
 
     /**
@@ -36,74 +29,67 @@ export default class ThreadManager {
      * @param getSettings
      * @param detectLanguage
      */
-    constructor(
-        elem: HTMLElement,
-        getSettings: () => Settings | null,
-        detectLanguage: (text: string) => Promise<LanguageDetectorResult>,
-        refreshStatus: () => void,
-    ) {
+    constructor(context: AppContext, elem: HTMLElement, refreshStatus: () => void) {
+        this.context = context;
         this.elem = elem;
-        this.getSettings = getSettings;
-        this.detectLanguageFunc = detectLanguage;
         this.refreshStatusFunc = refreshStatus;
 
-        // get the current filtering status
-        this.isFiltered = elem.style.display == 'none';
+        // main comment
+        this.mainComment = new CommentInfo(this.context, elem, false);
 
-        // start observer
-        this.observer = new MutationObserver(() => this.refreshAll());
-        this.observer.observe(this.elem, { subtree: true, characterData: true });
+        // set up observers
+        this.mainCommentObserver = new MutationObserver((m, o) => this.handleMainCommentUpdate(m, o));
+        this.replyCommentObserver = new MutationObserver((m, o) => this.handleReplyUpdate(m, o));
+    }
+
+    //--------------------------------------------------------------------------
+    //    Event Handlers
+    //--------------------------------------------------------------------------
+
+    /**
+     * Handles the update of the main comment.
+     * @param mutations mutation list
+     * @param observer observer
+     */
+    private handleMainCommentUpdate(mutations: MutationRecord[], observer: MutationObserver): void {
+        this.refreshMain().catch((error) => {
+            if (Config.debug.enabled) console.error(error);
+        });
     }
 
     /**
-     * Refreshes the thread manager.
-     * @return Promise of void
+     * Handles the update of replies.
+     * @param mutations mutation list
      */
-    refreshAll(): Promise<void> {
-        if (this.age < 0) return Promise.resolve(); // already destroyed
+    private handleReplyUpdate(mutations: MutationRecord[], observer: MutationObserver): void {
+        for (const mutation of mutations) {
+            if (mutation.type != 'childList') continue;
 
-        this.parsed = false;
-        const requestAge = this.incrementAge();
+            // clean outdated replies
+            for (const elem of mutation.removedNodes as NodeListOf<HTMLElement>) {
+                if (elem.tagName !== Config.dom.selector.ytCommentTagName) continue;
+                const r = this.replies.get(elem);
+                if (r !== undefined) {
+                    r.destroy();
+                    this.replies.delete(elem);
+                }
+            }
 
-        return Promise.resolve()
-            .then(() => this.fetchText(requestAge))
-            .then((text) => this.detectLanguage(requestAge, text))
-            .then((result) => this.saveDetectedLanguages(requestAge, result))
-            .then(() => this.applyFilter(requestAge, this.getSettings()))
-            .then(() => this.refreshStatus(requestAge));
-    }
-
-    /**
-     * Refreshes filtering.
-     * @return Promise of void
-     */
-    refreshFilter(): Promise<void> {
-        if (this.age < 0) return Promise.resolve(); // already destroyed
-        if (!this.parsed) return Promise.resolve(); // skip if refreshAll() is still working
-
-        const requestAge = this.incrementAge();
-
-        return Promise.resolve()
-            .then(() => this.applyFilter(requestAge, this.getSettings()))
-            .then(() => this.refreshStatus(requestAge));
-    }
-
-    /**
-     * Increments the current age and returns it.
-     * @return incremented age
-     */
-    incrementAge(): number {
-        return (this.age = (this.age + 1) % 1000000000);
-    }
-
-    /**
-     * Safely destroy this thread manager.
-     */
-    destroy(): void {
-        if (this.observer) this.observer.disconnect();
-        this.detectedLanguages = null;
-        this.parsed = false;
-        this.age = -1;
+            // add new replies
+            const ps = [];
+            for (const elem of mutation.addedNodes as NodeListOf<HTMLElement>) {
+                if (elem.tagName !== Config.dom.selector.ytCommentTagName) continue;
+                const r = this.replies.get(elem);
+                if (r === undefined) {
+                    const rr = new CommentInfo(this.context, elem, true);
+                    this.replies.set(elem, rr);
+                    ps.push(rr.refreshAll());
+                }
+            }
+            Promise.all(ps).catch((error) => {
+                if (Config.debug.enabled) console.error(error);
+            });
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -111,87 +97,79 @@ export default class ThreadManager {
     //--------------------------------------------------------------------------
 
     /**
-     * Fetches text from the thread.
-     * @param age requested age
-     * @return Promise of the text content
+     * Refreshes the entire thread.
+     * @return Promise of void
      */
-    private fetchText(age: number): Promise<string> {
-        if (age != this.age) throw new OutdatedRequestError(age, this.age);
-        const text = DomManager.fetchTextContent(this.elem);
-        this.text = text.substring(0, 20).replace(/\s/g, ' ');
-        // console.debug(`fetchText() => ${this.text} ...`);
-        return Promise.resolve(text);
-    }
+    refreshMain(): Promise<void> {
+        this.mainCommentObserver.disconnect();
+        this.mainCommentObserver.observe(DomManager.getMainCommentContainer(this.elem), {
+            subtree: true,
+            characterData: true,
+        });
+        // console.debug(`refreshMain: ${this.mainComment}`);
 
-    /**
-     * Detectes the language used in the given text.
-     * @param age requested age
-     * @param text text to analyze
-     * @return Promise of a detector result
-     */
-    private detectLanguage(age: number, text: string): Promise<LanguageDetectorResult> {
-        if (age != this.age) throw new OutdatedRequestError(age, this.age);
-        return this.detectLanguageFunc(text);
-    }
+        return this.mainComment
+            .refreshAll()
+            .then((filtered) => {
+                // console.debug(`refreshMain filter=${filtered}: ${this.mainComment}`);
 
-    /**
-     * Saves the detected languages.
-     * @param age requested age
-     * @param result detection result
-     */
-    private saveDetectedLanguages(age: number, result: LanguageDetectorResult): void {
-        if (age != this.age) throw new OutdatedRequestError(age, this.age);
-        this.detectedLanguages = result;
-        this.parsed = true;
-    }
+                // stop observer
+                this.replyCommentObserver.disconnect();
 
-    /**
-     * Applies a filter to the thread.
-     * @param age requested age
-     * @param settings settings to apply
-     * @param enabled true if filtering is enabled
-     * @return Promise of the tuple of old and current filtering states
-     */
-    private applyFilter(age: number, settings: Settings | null): Promise<void> {
-        if (age != this.age) throw new OutdatedRequestError(age, this.age);
+                // reset replies
+                [...this.replies.values()].forEach((r) => r.destroy());
+                this.replies.clear();
 
-        const oldFiltered = this.isFiltered;
-
-        const shouldFilter =
-            settings != null &&
-            this.detectedLanguages != null &&
-            settings.shouldFilterByLanguage(this.detectedLanguages);
-        this.isFiltered = shouldFilter;
-
-        let p = Promise.resolve();
-
-        if (oldFiltered != shouldFilter) {
-            if (shouldFilter) {
-                if (!this.waited) {
-                    // wait for YouTube's rendering before hiding the thread
-                    p = PromiseUtil.delay(300).then(() => {
-                        // console.debug(`applyFilter:ON: ${this.text}`);
-                        this.elem.style.display = 'none';
-                        this.waited = true;
-                    });
-                } else {
-                    // console.debug(`applyFilter:ON: ${this.text}`);
-                    this.elem.style.display = 'none';
+                // observe replies
+                const replyContainer = DomManager.findReplyContainer(this.elem);
+                if (replyContainer == null) {
+                    // console.debug(`No replies: ${this.mainComment}`);
+                    return; // no replies
                 }
-            } else {
-                // console.debug(`applyFilter:OFF: ${this.text}`);
-                this.elem.style.display = '';
-            }
-        }
-        return p;
+                this.replyCommentObserver.observe(replyContainer, { subtree: false, childList: true });
+                // console.debug(`Observe: ${this.mainComment}`);
+
+                // refresh already-rendered replies only if the thread is visible
+                if (!filtered) {
+                    const ps = [];
+
+                    for (const elem of DomManager.findReplyElements(this.elem)) {
+                        const r = new CommentInfo(this.context, elem, true);
+                        ps.push(r.refreshAll());
+                        this.replies.set(elem, r);
+                    }
+                    return Promise.all(ps);
+                }
+            })
+            .then(() => this.refreshStatusFunc());
     }
 
     /**
-     * Refreshes status.
-     * @param age requested age
+     * Refreshes filtering.
+     * @return Promise of void
      */
-    private refreshStatus(age: number): void {
-        if (age != this.age) throw new OutdatedRequestError(age, this.age);
-        this.refreshStatusFunc();
+    refreshFilter(): Promise<void> {
+        // console.debug(`refreshFilter: ${this.mainComment}`);
+
+        return this.mainComment
+            .refreshFilter()
+            .then((filtered) => {
+                if (filtered) return;
+                return Promise.all([...this.replies.values()].map((r) => r.refreshFilter()));
+            })
+            .then(() => this.refreshStatusFunc());
+    }
+
+    /**
+     * Safely destroy this thread manager.
+     */
+    destroy(): void {
+        // stop observers
+        if (this.mainCommentObserver) this.mainCommentObserver.disconnect();
+        if (this.replyCommentObserver) this.replyCommentObserver.disconnect();
+
+        // destroy comment info
+        this.mainComment.destroy();
+        [...this.replies.values()].forEach((r) => r.destroy());
     }
 }

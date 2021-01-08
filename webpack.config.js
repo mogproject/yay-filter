@@ -1,5 +1,10 @@
 'use strict';
 
+var webpack = require('webpack');
+
+// Debug flag
+const debugEnabled = process.env.NODE_ENV === 'development';
+
 module.exports = {
     // Set debugging source maps to be "inline" for
     // simplicity and ease of use
@@ -37,4 +42,10 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.js'],
     },
+
+    plugins: [
+        new webpack.DefinePlugin({
+            __DEBUG__: JSON.stringify(debugEnabled),
+        }),
+    ],
 };

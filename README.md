@@ -24,8 +24,14 @@ This extension provides a comment filter on [YouTube](https://www.youtube.com/).
 
 -   Language Filter
     -   You can configure the languages you want to see.
+-   Blocked Words
+    -   You can hide the comments that include specific keywords.
+-   Reply Filter
+    -   You can filter replies in addition to independent comments.
 -   Filter On/Off Button
     -   You can turn on/off the filter for each tab.
+
+See [Changelog](https://github.com/mogproject/yay-filter/wiki/Changelog) for details.
 
 ## Requirements
 
@@ -47,6 +53,7 @@ Privacy matters.
 
 -   [Report an Issue](https://github.com/mogproject/yay-filter/issues)
 -   [Developers Guide](https://github.com/mogproject/yay-filter/wiki/Developers-Guide)
+-   [Localization](https://github.com/mogproject/yay-filter/tree/main/assets/_locales)
 
 ## Special Thanks
 

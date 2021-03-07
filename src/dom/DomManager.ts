@@ -168,8 +168,9 @@ export default class DomManager {
         const span = document.createElement('span');
         span.id = Config.dom.id.yayFilterContainer;
 
-        const tooltip = this.createElementWithText('paper-tooltip', chrome.i18n.getMessage('filter_comments'));
-        tooltip.className = 'style-scope';
+        const tooltip = this.createElementWithText('div', chrome.i18n.getMessage('filter_comments'));
+        tooltip.id = 'tooltip';
+        tooltip.classList.add('style-scope', 'tp-yt-paper-tooltip', 'yay-tooltip');
         tooltip.setAttribute('role', 'tooltip');
         span.appendChild(tooltip);
 

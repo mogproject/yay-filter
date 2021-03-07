@@ -167,7 +167,7 @@ class PopupApp {
 
         // set unknown language
         const elem = document.getElementById('chk-lang-unknown') as HTMLInputElement;
-        if (elem !== undefined) elem.checked = this.settings.getIncludeUnknown();
+        if (elem !== undefined) elem.checked = this.settings.getSelectUnknown();
 
         // blocked words
         this.blockedWordsInput.value = this.settings.getBlockedWords().join('\n');
@@ -216,7 +216,7 @@ class PopupApp {
     private createUnknownLanguage(): HTMLDivElement {
         const container = DomManager.createCheckbox(
             'chk-lang-unknown',
-            this.settings.getIncludeUnknown(),
+            this.settings.getSelectUnknown(),
             chrome.i18n.getMessage('unknown'),
             (ev: Event) => this.updateLanguageUnknown((ev.target as HTMLInputElement).checked),
         );
@@ -238,7 +238,7 @@ class PopupApp {
 
         const container = DomManager.createCheckbox(
             `chk-lang-${languageCode}`,
-            this.settings.getIncludeLanguages().has(languageCode),
+            this.settings.getSelectedLanguages().has(languageCode),
             description,
             (ev: Event) => this.updateLanguageSettings(languageCode, (ev.target as HTMLInputElement).checked),
         );
@@ -288,7 +288,7 @@ class PopupApp {
      * @param value new value
      */
     private updateLanguageSettings(languageCode: string, value: boolean): void {
-        this.settings.setIncludeLanguage(languageCode, value).saveToStorage();
+        this.settings.setSelectedLanguage(languageCode, value).saveToStorage();
     }
 
     /**
@@ -296,7 +296,7 @@ class PopupApp {
      * @param value new value
      */
     private updateLanguageUnknown(value: boolean): void {
-        this.settings.setIncludeUnknown(value).saveToStorage();
+        this.settings.setSelectUnknown(value).saveToStorage();
     }
 
     /**

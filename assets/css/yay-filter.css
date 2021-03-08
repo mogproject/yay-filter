@@ -1,11 +1,13 @@
 #yay-filter-container {
     cursor: pointer;
     margin-left: 32px;
-    height: 24px;
+    height: 23px;
     color: var(--yt-spec-text-secondary);
     font-family: Roboto, Arial, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--ytd-tab-system_-_font-size);
+    font-weight: var(--ytd-tab-system_-_font-weight);
+    letter-spacing: var(--ytd-tab-system_-_letter-spacing);
+    text-transform: var(--ytd-tab-system_-_text-transform);
 
     user-select: none;
     -webkit-user-select: none;
@@ -17,7 +19,7 @@
     position: absolute;
     visibility: hidden;
     z-index: 100;
-    margin-top: 46px;
+    margin-top: 46px !important;
     opacity: 0;
     transition: opacity 0.3s;
 }

@@ -8,20 +8,60 @@ describe('Settings#constructor', () => {
         Object.assign(Navigator, { languages: () => ['en-US', 'en'] });
 
         let s = new Settings(undefined, undefined, undefined, undefined, undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en"],"pt":20,"bw":[],"fr":false}');
-
-        s = new Settings(undefined, ['ja', 'en', 'de'], undefined, undefined, undefined, undefined);
-        expect(s.toJSON()).toBe(
-            '{"ed":true,"il":["ja","en","de"],"iu":false,"ll":["ja","en","de"],"pt":20,"bw":[],"fr":false}',
-        );
-
-        s = new Settings(undefined, undefined, undefined, ['ja', 'de'], undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["en","ja","de"],"pt":20,"bw":[],"fr":false}');
-
-        s = new Settings(undefined, undefined, undefined, ['ja', 'de', 'en'], undefined, undefined);
-        expect(s.toJSON()).toBe('{"ed":true,"il":["en"],"iu":false,"ll":["ja","de","en"],"pt":20,"bw":[],"fr":false}');
+        let e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["en"],"iu":false,"ll":["en"],"pt":20,"ew":true,"bw":[],"re":false,"fr":false}';
+        expect(s.toJSON()).toBe(e);
 
         s = new Settings(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            ['ja', 'en', 'de'],
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        );
+        e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["ja","en","de"],"iu":false,"ll":["ja","en","de"],"pt":20,"ew":true,"bw":[],"re":false,"fr":false}';
+
+        expect(s.toJSON()).toBe(e);
+
+        s = new Settings(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            ['ja', 'de'],
+            undefined,
+            undefined,
+        );
+        e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["en"],"iu":false,"ll":["en","ja","de"],"pt":20,"ew":true,"bw":[],"re":false,"fr":false}';
+        expect(s.toJSON()).toBe(e);
+
+        s = new Settings(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            ['ja', 'de', 'en'],
+            undefined,
+            undefined,
+        );
+        e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["en"],"iu":false,"ll":["ja","de","en"],"pt":20,"ew":true,"bw":[],"re":false,"fr":false}';
+        expect(s.toJSON()).toBe(e);
+
+        s = new Settings(
+            undefined,
+            undefined,
+            undefined,
             undefined,
             ['en', 'en', 'ja', 'es'],
             undefined,
@@ -29,24 +69,36 @@ describe('Settings#constructor', () => {
             undefined,
             undefined,
         );
-        expect(s.toJSON()).toBe(
-            '{"ed":true,"il":["es","ja","en"],"iu":false,"ll":["es","ja","de","en"],"pt":20,"bw":[],"fr":false}',
-        );
+        e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["es","ja","en"],"iu":false,"ll":["es","ja","de","en"],"pt":20,"ew":true,"bw":[],"re":false,"fr":false}';
+
+        expect(s.toJSON()).toBe(e);
     });
 });
 
 describe('Settings#copy', () => {
     test('normal cases', () => {
-        const s = new Settings(false, ['ja', 'de', 'en'], undefined, ['en', 'de', 'ja', 'es'], 15, ['XYZ', 'abc']);
+        const s = new Settings(
+            false,
+            true,
+            true,
+            false,
+            ['ja', 'de', 'en'],
+            undefined,
+            ['en', 'de', 'ja', 'es'],
+            15,
+            true,
+            ['XYZ', 'abc'],
+        );
         const t = s.copy();
         t.setEnabledDefault(true).removeListedLanguage('en').addListedLanguage('fr', true).setPercentageThreshold(18);
+        let e =
+            '{"ed":false,"ef":true,"el":true,"bl":false,"il":["en","de","ja"],"iu":false,"ll":["en","de","ja","es"],"pt":15,"ew":true,"bw":["XYZ","abc"],"re":false,"fr":false}';
 
-        expect(s.toJSON()).toBe(
-            '{"ed":false,"il":["en","de","ja"],"iu":false,"ll":["en","de","ja","es"],"pt":15,"bw":["XYZ","abc"],"fr":false}',
-        );
-        expect(t.toJSON()).toBe(
-            '{"ed":true,"il":["de","ja","fr"],"iu":false,"ll":["de","ja","es","fr"],"pt":18,"bw":["XYZ","abc"],"fr":false}',
-        );
+        expect(s.toJSON()).toBe(e);
+        e =
+            '{"ed":true,"ef":true,"el":true,"bl":false,"il":["de","ja","fr"],"iu":false,"ll":["de","ja","es","fr"],"pt":18,"ew":true,"bw":["XYZ","abc"],"re":false,"fr":false}';
+        expect(t.toJSON()).toBe(e);
     });
 });
 
@@ -64,18 +116,18 @@ describe('Settings#setEnabledDefault', () => {
 describe('Settings#setIncludeLanguage', () => {
     test('error cases', () => {
         const s = new Settings();
-        expect(() => s.setIncludeLanguage('ja', true)).toThrowError();
+        expect(() => s.setSelectedLanguage('ja', true)).toThrowError();
     });
     test('normal cases', () => {
         const s = new Settings();
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en']));
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en']));
         expect(s.addListedLanguage('ja', true)).toEqual(s);
 
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en', 'ja']));
-        expect(s.setIncludeLanguage('ja', false)).toEqual(s);
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en']));
-        expect(s.setIncludeLanguage('ja', true)).toEqual(s);
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en', 'ja']));
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en', 'ja']));
+        expect(s.setSelectedLanguage('ja', false)).toEqual(s);
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en']));
+        expect(s.setSelectedLanguage('ja', true)).toEqual(s);
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en', 'ja']));
     });
 });
 
@@ -84,33 +136,33 @@ describe('Settings#addListedLanguage', () => {
         const s = new Settings();
         expect(s.addListedLanguage('en', true)).toEqual(s);
         expect(s.getListedLanguages()).toEqual(['en']);
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en']));
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en']));
         expect(s.addListedLanguage('en', false)).toEqual(s); // no effect
         expect(s.getListedLanguages()).toEqual(['en']);
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en']));
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en']));
 
         expect(s.addListedLanguage('de', false)).toEqual(s);
         expect(s.getListedLanguages()).toEqual(['en', 'de']);
-        expect(s.getIncludeLanguages()).toEqual(new Set(['en']));
+        expect(s.getSelectedLanguages()).toEqual(new Set(['en']));
 
         expect(s.removeListedLanguage('en')).toEqual(s);
         expect(s.getListedLanguages()).toEqual(['de']);
-        expect(s.getIncludeLanguages()).toEqual(new Set([]));
+        expect(s.getSelectedLanguages()).toEqual(new Set([]));
 
         expect(s.removeListedLanguage('de')).toEqual(s);
         expect(s.getListedLanguages()).toEqual([]);
-        expect(s.getIncludeLanguages()).toEqual(new Set([]));
+        expect(s.getSelectedLanguages()).toEqual(new Set([]));
     });
 });
 
 describe('Settings#setIncludeUnknown', () => {
     test('normal cases', () => {
         const s = new Settings();
-        expect(s.getIncludeUnknown()).toBeFalsy();
-        expect(s.setIncludeUnknown(true)).toEqual(s);
-        expect(s.getIncludeUnknown()).toBeTruthy();
-        expect(s.setIncludeUnknown(false)).toEqual(s);
-        expect(s.getIncludeUnknown()).toBeFalsy();
+        expect(s.getSelectUnknown()).toBeFalsy();
+        expect(s.setSelectUnknown(true)).toEqual(s);
+        expect(s.getSelectUnknown()).toBeTruthy();
+        expect(s.setSelectUnknown(false)).toEqual(s);
+        expect(s.getSelectUnknown()).toBeFalsy();
     });
 });
 
@@ -155,9 +207,9 @@ describe('Settings#setPercentageThreshold', () => {
 
 describe('Settings#shouldFilterByLanguage', () => {
     test('unknown language', () => {
-        const s1 = new Settings(true, ['en'], true, ['en'], 50);
-        const s2 = new Settings(true, ['en'], false, ['en'], 50);
-        const s3 = new Settings(true, [], false, ['en'], 50);
+        const s1 = new Settings(true, true, true, false, ['en'], true, ['en'], 50);
+        const s2 = new Settings(true, true, true, false, ['en'], false, ['en'], 50);
+        const s3 = new Settings(true, true, true, false, [], false, ['en'], 50);
 
         const r1: LanguageDetectorResult = { isReliable: false, languages: [] };
         const r2: LanguageDetectorResult = {
@@ -196,11 +248,11 @@ describe('Settings#shouldFilterByLanguage', () => {
 
 describe('Settings#shouldFilterByWord', () => {
     test('empty filter', () => {
-        const s = new Settings(false, ['en', 'ja'], false, ['en', 'ja'], 20, []);
+        const s = new Settings(false, true, true, false, ['en', 'ja'], false, ['en', 'ja'], 20, true, []);
         expect(s.shouldFilterByWord('abc')).toBeFalsy();
     });
     test('normal cases', () => {
-        const s = new Settings(false, ['en', 'ja'], false, ['en', 'ja'], 20, ['abc', 'XY']);
+        const s = new Settings(false, true, true, false, ['en', 'ja'], false, ['en', 'ja'], 20, true, ['abc', 'XY']);
         expect(s.shouldFilterByWord('abc')).toBeTruthy();
         expect(s.shouldFilterByWord('ABC')).toBeTruthy();
         expect(s.shouldFilterByWord('aBcD')).toBeTruthy();
@@ -216,14 +268,14 @@ describe('Settings#shouldFilterByWord', () => {
 
 describe('Settings#shouldRefreshFilter', () => {
     test('normal cases', () => {
-        const s1 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 20, []);
-        const s2 = new Settings(true, ['en'], false, ['en', 'de', 'ja'], 20, []);
-        const s3 = new Settings(true, ['en'], false, ['en', 'ja', 'ko'], 20, []);
-        const s4 = new Settings(false, ['en'], true, ['en', 'de', 'ja'], 20, []);
-        const s5 = new Settings(false, ['en', 'de'], true, ['en', 'de', 'ja'], 20, []);
-        const s6 = new Settings(false, ['de', 'en'], true, ['de', 'en', 'ja'], 20, []);
-        const s7 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 21, []);
-        const s8 = new Settings(false, ['en'], false, ['en', 'de', 'ja'], 20, [], true);
+        const s1 = new Settings(false, true, true, false, ['en'], false, ['en', 'de', 'ja'], 20, true, []);
+        const s2 = new Settings(true, true, true, false, ['en'], false, ['en', 'de', 'ja'], 20, true, []);
+        const s3 = new Settings(true, true, true, false, ['en'], false, ['en', 'ja', 'ko'], 20, true, []);
+        const s4 = new Settings(false, true, true, false, ['en'], true, ['en', 'de', 'ja'], 20, true, []);
+        const s5 = new Settings(false, true, true, false, ['en', 'de'], true, ['en', 'de', 'ja'], 20, true, []);
+        const s6 = new Settings(false, true, true, false, ['de', 'en'], true, ['de', 'en', 'ja'], 20, true, []);
+        const s7 = new Settings(false, true, true, false, ['en'], false, ['en', 'de', 'ja'], 21, true, []);
+        const s8 = new Settings(false, true, true, false, ['en'], false, ['en', 'de', 'ja'], 20, true, [], false, true);
         expect(s1.shouldRefreshFilter(s2)).toBeFalsy();
         expect(s2.shouldRefreshFilter(s3)).toBeFalsy();
         expect(s1.shouldRefreshFilter(s4)).toBeTruthy();
@@ -258,7 +310,7 @@ describe('Settings#loadFromStorage', () => {
         await expect(Settings.loadFromStorage()).resolves.toStrictEqual(s);
         await expect(s.saveToStorage()).resolves.toBeFalsy();
 
-        s = s.setEnabledDefault(false).addListedLanguage('ja', true).setIncludeUnknown(true);
+        s = s.setEnabledDefault(false).addListedLanguage('ja', true).setSelectUnknown(true);
         await expect(s.saveToStorage()).resolves.toBeFalsy();
         await expect(Settings.loadFromStorage()).resolves.toStrictEqual(s);
     });

@@ -13,6 +13,20 @@
     -khtml-user-select: none;
 }
 
+#yay-filter-container .yay-tooltip {
+    position: absolute;
+    visibility: hidden;
+    z-index: 100;
+    margin-top: 46px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#yay-filter-container:hover .yay-tooltip {
+    visibility: visible;
+    opacity: 0.9;
+}
+
 #yay-filter-container svg {
     position: absolute;
     width: 24px;

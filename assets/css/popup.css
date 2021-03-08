@@ -56,9 +56,20 @@ footer a {
     padding: 8px 10px;
 }
 
+.popup-settings .settings-annotation{
+    font-size: 11px;
+    text-align: right;
+}
+
 .popup-settings h4 {
     font-size: 16px;
     margin: 12px 0px 6px 0px;
+}
+
+.popup-settings form {
+    margin: 6px -4px -4px -4px;
+    padding: 4px 4px 4px 4px;
+    border: 1px solid #dddddd;
 }
 
 .popup-settings input,
@@ -70,10 +81,6 @@ label {
     -webkit-user-select: none;
     -moz-user-select: none;
     -khtml-user-select: none;
-}
-
-.popup-settings textarea {
-    font-size: 14px;
 }
 
 .popup-settings input[type='button'],
@@ -104,10 +111,6 @@ input[type='submit']:disabled {
 input[type='submit']:disabled:hover {
     color: #065fd4;
     background-color: #f9f9f9;
-}
-
-#popup-form-blocked-words div {
-    padding-left: 16px;
 }
 
 .popup-settings textarea {

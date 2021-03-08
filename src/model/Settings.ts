@@ -9,51 +9,83 @@ import SetUtil from '../util/SetUtil';
 export default class Settings {
     /** True if the filter should be enabled by default. */
     private enabledDefault: boolean;
-    /** Languages to be visible. */
-    private includeLanguages: Set<string>;
+    /** True if the filter button should be injected. (since v0.1.2) */
+    private showFilterButton: boolean;
+    /** True if language filter is enabled. (since v0.1.2) */
+    private filterByLanguage: boolean;
+    /** True if the selected languages should be treated as a blocklist. (since v0.1.2) */
+    private blockSelectedLanguages: boolean;
+    /** Languages to be selected. */
+    private selectedLanguages: Set<string>;
     /** Languages shown in the menu. */
     private listedLanguages: string[];
     /** Lowerbound of the language usage in each comment. */
     private percentageThreshold: number;
-    /** True if the comment with unknown languages should be visible. */
-    private includeUnknownLanguage: boolean;
+    /** True if the comment with unknown languages should be selected. */
+    private selectUnknownLanguage: boolean;
+    /** True if word filter is enabled. (since v0.1.2) */
+    private filterByWord: boolean;
     /** Words to exclude. */
     private blockedWords: string[];
+    /** True if blocked words should be treated as regular expression. (since v0.1.2) */
+    private regularExpressionEnabled: boolean;
     /** True if reply comments should be filtered. */
     private filterReplies: boolean;
+    /** Cache of regular expressions. */
+    private regExp: RegExp[];
 
     /**
      * Constructs settings.
      * @param enabledDefault enabled by default
-     * @param includeLanguages languages to be visible
-     * @param includeUnknownLanguage true if unknown languages should be visible
+     * @param showFilterButton show filter button
+     * @param filterByLanguage enable language filtering
+     * @param blockSelectedLanguages block languages instead of allowing
+     * @param selectedLanguages languages to be selected
+     * @param selectUnknownLanguage true if unknown languages should be selected
      * @param listedLanguages listed languages
      * @param percentageThreshold percentage threshold
+     * @param filterByWord enable word filtering
      * @param excludeWords words to exclude
+     * @param regularExpressionEnabled enable regular expression
+     * @param filterReplies filter replies
      */
     constructor(
         enabledDefault?: boolean | undefined,
-        includeLanguages?: Array<string> | undefined,
-        includeUnknownLanguage?: boolean | undefined,
+        showFilterButton?: boolean | undefined,
+        filterByLanguage?: boolean | undefined,
+        blockSelectedLanguages?: boolean | undefined,
+        selectedLanguages?: Array<string> | undefined,
+        selectUnknownLanguage?: boolean | undefined,
         listedLanguages?: Array<string> | undefined,
         percentageThreshold?: number | undefined,
+        filterByWord?: boolean | undefined,
         excludeWords?: string[] | undefined,
+        regularExpressionEnabled?: boolean | undefined,
         filterReplies?: boolean | undefined,
     ) {
         // enabled default: default true
         this.enabledDefault = enabledDefault === undefined ? true : enabledDefault;
 
+        // filter button: default true
+        this.showFilterButton = showFilterButton == undefined ? true : showFilterButton;
+
+        // language filter: default true
+        this.filterByLanguage = filterByLanguage == undefined ? true : filterByLanguage;
+
+        // blocklist: default false
+        this.blockSelectedLanguages = blockSelectedLanguages == undefined ? false : blockSelectedLanguages;
+
         // include languages: default read browser settings
         const languages =
-            includeLanguages === undefined ? this.getPreferredLanguages() : ArrayUtil.distinct(includeLanguages);
-        this.includeLanguages = new Set(languages);
+            selectedLanguages === undefined ? this.getPreferredLanguages() : ArrayUtil.distinct(selectedLanguages);
+        this.selectedLanguages = new Set(languages);
 
         // include unknown languages: default false
-        this.includeUnknownLanguage = includeUnknownLanguage === undefined ? false : includeUnknownLanguage;
+        this.selectUnknownLanguage = selectUnknownLanguage === undefined ? false : selectUnknownLanguage;
 
         // listed languages: default clone the include languages
         if (listedLanguages === undefined) {
-            this.listedLanguages = [...this.includeLanguages];
+            this.listedLanguages = [...this.selectedLanguages];
         } else {
             // listed languages must be a superset of the include languages
             const ll = new Set(listedLanguages);
@@ -66,11 +98,28 @@ export default class Settings {
         this.percentageThreshold =
             percentageThreshold === undefined ? Config.settings.defaultPercentageThreshould : percentageThreshold;
 
+        // word filter: default true
+        this.filterByWord = filterByWord == undefined ? true : filterByWord;
+
         // exclude words: default empty
         this.blockedWords = excludeWords === undefined ? [] : excludeWords;
 
+        // regular expression: default false
+        this.regularExpressionEnabled = regularExpressionEnabled == undefined ? false : regularExpressionEnabled;
+        this.regExp = [];
+        this.cacheRegExp();
+
         // filter replies: default false
         this.filterReplies = filterReplies === undefined ? false : filterReplies;
+    }
+
+    /**
+     * Creates RegExp instances for blocked words in regular expression.
+     */
+    private cacheRegExp(): void {
+        if (this.regularExpressionEnabled) {
+            this.regExp = this.blockedWords.map((w) => new RegExp(w, 'i'));
+        }
     }
 
     /**
@@ -80,11 +129,16 @@ export default class Settings {
     copy(): Settings {
         return new Settings(
             this.enabledDefault,
-            [...this.includeLanguages],
-            this.includeUnknownLanguage,
+            this.showFilterButton,
+            this.filterByLanguage,
+            this.blockSelectedLanguages,
+            [...this.selectedLanguages],
+            this.selectUnknownLanguage,
             [...this.listedLanguages],
             this.percentageThreshold,
+            this.filterByWord,
             [...this.blockedWords],
+            this.regularExpressionEnabled,
             this.filterReplies,
         );
     }
@@ -100,11 +154,16 @@ export default class Settings {
     toJSON(): string {
         return JSON.stringify({
             ed: this.enabledDefault,
-            il: this.listedLanguages.filter((s) => this.includeLanguages.has(s)), // order languages
-            iu: this.includeUnknownLanguage,
+            ef: this.showFilterButton,
+            el: this.filterByLanguage,
+            bl: this.blockSelectedLanguages,
+            il: this.listedLanguages.filter((s) => this.selectedLanguages.has(s)), // order languages
+            iu: this.selectUnknownLanguage,
             ll: this.listedLanguages,
             pt: this.percentageThreshold,
+            ew: this.filterByWord,
             bw: this.blockedWords,
+            re: this.regularExpressionEnabled,
             fr: this.filterReplies,
         });
     }
@@ -118,7 +177,20 @@ export default class Settings {
         if (s === undefined) return new Settings();
 
         const obj = JSON.parse(s);
-        return new Settings(obj.ed, obj.il, obj.iu, obj.ll, obj.pt, obj.bw, obj.fr);
+        return new Settings(
+            obj.ed,
+            obj.ef,
+            obj.el,
+            obj.bl,
+            obj.il,
+            obj.iu,
+            obj.ll,
+            obj.pt,
+            obj.ew,
+            obj.bw,
+            obj.re,
+            obj.fr,
+        );
     }
 
     /**
@@ -165,10 +237,65 @@ export default class Settings {
 
     /**
      * Updates the default denabled setting.
-     * @param enabled true if filtering is enabled by default
+     * @param enabled true if filtering is enabled by defaultenabled
+     * @return updated settings
      */
     setEnabledDefault(enabled: boolean): Settings {
         this.enabledDefault = enabled;
+        return this;
+    }
+
+    /**
+     * Returns the filter button visible setting.
+     * @return true if filter button is visible
+     */
+    isFilterButtonVisible(): boolean {
+        return this.showFilterButton;
+    }
+
+    /**
+     * Updates the filter button visible setting.
+     * @param enabled true if filter button is visibleenabled
+     * @return updated settings
+     */
+    setFilterButtonVisible(visible: boolean): Settings {
+        this.showFilterButton = visible;
+        return this;
+    }
+
+    /**
+     * Returns the language filter setting.
+     * @return true if language filter is enabled
+     */
+    isLanguageFilterEnabled(): boolean {
+        return this.filterByLanguage;
+    }
+
+    /**
+     * Updates the language filter setting.
+     * @param enabled true if language filter is enabledenabled
+     * @return updated settings
+     */
+    setLanguageFilterEnabled(enabled: boolean): Settings {
+        this.filterByLanguage = enabled;
+        return this;
+    }
+
+    /**
+     * Returns the language blocklist setting.
+     * @return true if language filter is blocklist
+     */
+    isLanguageBlockList(): boolean {
+        return this.blockSelectedLanguages;
+    }
+
+    /**
+     * Updates the language blocklist setting.
+     * @param isBlockList if language filter is blocklistenabled
+     * @return updated settings
+     */
+    setLanguageBlockList(isBlockList: boolean): Settings {
+        this.blockSelectedLanguages = isBlockList;
         return this;
     }
 
@@ -178,13 +305,13 @@ export default class Settings {
      * @param value true if the language should be visible
      * @return updated settings
      */
-    setIncludeLanguage(language: string, value: boolean): Settings {
+    setSelectedLanguage(language: string, value: boolean): Settings {
         if (!this.listedLanguages.includes(language)) throw new Error('language is not listed');
 
         if (value) {
-            this.includeLanguages.add(language);
+            this.selectedLanguages.add(language);
         } else {
-            this.includeLanguages.delete(language);
+            this.selectedLanguages.delete(language);
         }
         return this;
     }
@@ -193,16 +320,16 @@ export default class Settings {
      * Returns the set of the languages to be visible.
      * @return set of language codes
      */
-    getIncludeLanguages(): Set<string> {
-        return this.includeLanguages;
+    getSelectedLanguages(): Set<string> {
+        return this.selectedLanguages;
     }
 
     /**
      * Returns the unknown language setting.
      * @return true if unknown languages should be visible
      */
-    getIncludeUnknown(): boolean {
-        return this.includeUnknownLanguage;
+    getSelectUnknown(): boolean {
+        return this.selectUnknownLanguage;
     }
 
     /**
@@ -210,8 +337,8 @@ export default class Settings {
      * @param value true if unknown languages should be visible
      * @return updated settings
      */
-    setIncludeUnknown(value: boolean): Settings {
-        this.includeUnknownLanguage = value;
+    setSelectUnknown(value: boolean): Settings {
+        this.selectUnknownLanguage = value;
         return this;
     }
 
@@ -234,7 +361,7 @@ export default class Settings {
         if (this.listedLanguages.includes(language)) return this;
 
         this.listedLanguages.push(language);
-        if (include) this.includeLanguages.add(language);
+        if (include) this.selectedLanguages.add(language);
         return this;
     }
 
@@ -245,8 +372,8 @@ export default class Settings {
      */
     removeListedLanguage(language: string): Settings {
         // first, unselect if it is checked
-        if (this.includeLanguages.has(language)) {
-            this.includeLanguages.delete(language);
+        if (this.selectedLanguages.has(language)) {
+            this.selectedLanguages.delete(language);
         }
         // next remove from the list
         ArrayUtil.remove(this.listedLanguages, language);
@@ -272,20 +399,20 @@ export default class Settings {
     }
 
     /**
-     * Returns if replies should be filtered.
-     * @return filter replies
+     * Returns the word filter setting.
+     * @return true if word filter is enabled
      */
-    getFilterReplies(): boolean {
-        return this.filterReplies;
+    isWordFilterEnabled(): boolean {
+        return this.filterByWord;
     }
 
     /**
-     * Updates if replies should be filtered.
-     * @param value new filter replies
+     * Updates the word filter setting.
+     * @param enabled true if word filter is enabled
      * @return updated settings
      */
-    setFilterReplies(value: boolean): Settings {
-        this.filterReplies = value;
+    setWordFilterEnabled(enabled: boolean): Settings {
+        this.filterByWord = enabled;
         return this;
     }
 
@@ -306,6 +433,44 @@ export default class Settings {
         // clean whitespace
         const cleaned = words.map((s) => s.replace(/\s+/g, ' ').trim()).filter((s) => s);
         this.blockedWords = cleaned;
+        this.cacheRegExp();
+        return this;
+    }
+
+    /**
+     * Returns the regular expression setting.
+     * @return true if word filter is in regular expression
+     */
+    isRegularExpression(): boolean {
+        return this.regularExpressionEnabled;
+    }
+
+    /**
+     * Updates the regular expression setting.
+     * @param enabled if word filter is in regular expression
+     * @return updated settings
+     */
+    setRegularExpression(enabled: boolean): Settings {
+        this.regularExpressionEnabled = enabled;
+        this.cacheRegExp();
+        return this;
+    }
+
+    /**
+     * Returns if replies should be filtered.
+     * @return filter replies
+     */
+    getFilterReplies(): boolean {
+        return this.filterReplies;
+    }
+
+    /**
+     * Updates if replies should be filtered.
+     * @param value new filter replies
+     * @return updated settings
+     */
+    setFilterReplies(value: boolean): Settings {
+        this.filterReplies = value;
         return this;
     }
 
@@ -319,8 +484,23 @@ export default class Settings {
      * @return true if the content should be hidden
      */
     shouldFilterByLanguage(detectedLanguages: LanguageDetectorResult): boolean {
+        if (!this.filterByLanguage) return false; // no filter
+
+        if (this.matchByLanguage(detectedLanguages)) {
+            return !this.blockSelectedLanguages;
+        } else {
+            return this.blockSelectedLanguages;
+        }
+    }
+
+    /**
+     * Checks if the language filter matches the language filter.
+     * @param detectedLanguages detected languages
+     * @return true if the content matches the language filter.
+     */
+    private matchByLanguage(detectedLanguages: LanguageDetectorResult): boolean {
         // shortcut when no languages are selected
-        if (this.includeLanguages.size == 0 && !this.includeUnknownLanguage) return true;
+        if (this.selectedLanguages.size == 0 && !this.selectedLanguages) return true;
 
         // filter by percentage
         const filtered = detectedLanguages.languages
@@ -328,14 +508,14 @@ export default class Settings {
             .map((lang) => lang.language);
 
         // unknown
-        if (filtered.length == 0) return !this.includeUnknownLanguage;
+        if (filtered.length == 0) return !this.selectUnknownLanguage;
 
         return !filtered.some((lang) => {
-            if (lang == 'und' && this.includeUnknownLanguage) return true; // unknown
+            if (lang == 'und' && this.selectUnknownLanguage) return true; // unknown
 
             // treat as an ISO-639-1 code
             const code = lang.charAt(2) == '-' ? lang.substring(0, 2) : lang;
-            return this.includeLanguages.has(code);
+            return this.selectedLanguages.has(code);
         });
     }
 
@@ -345,8 +525,14 @@ export default class Settings {
      * @return true if the content should be hidden
      */
     shouldFilterByWord(text: string): boolean {
-        const t = text.toLocaleLowerCase();
-        return this.blockedWords.some((w) => t.includes(w.toLocaleLowerCase()));
+        if (!this.filterByWord) return false; // no filter
+
+        if (this.regularExpressionEnabled) {
+            return this.regExp.some((r) => text.match(r));
+        } else {
+            const t = text.toLocaleLowerCase();
+            return this.blockedWords.some((w) => t.includes(w.toLocaleLowerCase()));
+        }
     }
 
     /**
@@ -355,9 +541,14 @@ export default class Settings {
      * @return true if the content script should refresh
      */
     shouldRefreshFilter(oldSettings: Settings): boolean {
-        if (!SetUtil.equals(oldSettings.includeLanguages, this.includeLanguages)) return true;
-        if (oldSettings.includeUnknownLanguage !== this.includeUnknownLanguage) return true;
+        if (!SetUtil.equals(oldSettings.selectedLanguages, this.selectedLanguages)) return true;
+        if (oldSettings.filterByLanguage !== this.filterByLanguage) return true;
+        if (oldSettings.blockSelectedLanguages !== this.blockSelectedLanguages) return true;
+        if (oldSettings.selectUnknownLanguage !== this.selectUnknownLanguage) return true;
         if (oldSettings.percentageThreshold !== this.percentageThreshold) return true;
+
+        if (oldSettings.filterByWord !== this.filterByWord) return true;
+        if (oldSettings.regularExpressionEnabled !== this.regularExpressionEnabled) return true;
 
         // FIXME: improve performance?
         if (!SetUtil.equals(new Set(oldSettings.blockedWords), new Set(this.blockedWords))) return true;

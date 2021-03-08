@@ -168,8 +168,9 @@ export default class DomManager {
         const span = document.createElement('span');
         span.id = Config.dom.id.yayFilterContainer;
 
-        const tooltip = this.createElementWithText('paper-tooltip', chrome.i18n.getMessage('filter_comments'));
-        tooltip.className = 'style-scope';
+        const tooltip = this.createElementWithText('div', chrome.i18n.getMessage('filter_comments'));
+        tooltip.id = 'tooltip';
+        tooltip.classList.add('style-scope', 'tp-yt-paper-tooltip', 'yay-tooltip');
         tooltip.setAttribute('role', 'tooltip');
         span.appendChild(tooltip);
 
@@ -215,7 +216,13 @@ export default class DomManager {
 
         const label = document.createElement('label') as HTMLLabelElement;
         label.htmlFor = checkbox.id;
-        label.appendChild(document.createTextNode(text));
+
+        // convert newline to <BR>
+        const tokens = text.split('\n');
+        for (let i = 0; i < tokens.length; ++i) {
+            if (i > 0) label.appendChild(document.createElement('br'));
+            label.appendChild(document.createTextNode(tokens[i]));
+        }
 
         container.appendChild(checkbox);
         container.appendChild(label);

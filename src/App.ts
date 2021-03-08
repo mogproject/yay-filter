@@ -195,6 +195,12 @@ export default class App {
     private injectFilterButton(commentHeader: HTMLElement): void {
         // this.log('injectFilterButton()');
 
+        // do not inject
+        if (!this.context.settings.isFilterButtonVisible()) {
+            this.threadContainer = DomManager.getCommentThreadContainer();
+            return;
+        }
+
         // create filter button
         this.clearYayFilterContainer();
         const [c, s, i] = DomManager.createYayFilterContainer(() => this.toggleEnabled());

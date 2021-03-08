@@ -216,7 +216,13 @@ export default class DomManager {
 
         const label = document.createElement('label') as HTMLLabelElement;
         label.htmlFor = checkbox.id;
-        label.appendChild(document.createTextNode(text));
+
+        // convert newline to <BR>
+        const tokens = text.split('\n');
+        for (let i = 0; i < tokens.length; ++i) {
+            if (i > 0) label.appendChild(document.createElement('br'));
+            label.appendChild(document.createTextNode(tokens[i]));
+        }
 
         container.appendChild(checkbox);
         container.appendChild(label);

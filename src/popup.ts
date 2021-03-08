@@ -68,8 +68,15 @@ class PopupApp {
         const settingsDiv = document.createElement('div') as HTMLDivElement;
         settingsDiv.className = 'popup-settings';
 
+        const annotationDiv = DomManager.createElementWithText(
+            'div',
+            '* ' + chrome.i18n.getMessage('page_reload_required'),
+        );
+        annotationDiv.className = 'settings-annotation';
+        settingsDiv.appendChild(annotationDiv);
+
         // (1) General Settings
-        this.sectionGeneral = document.createElement('div') as HTMLDivElement;
+        this.sectionGeneral = this.createGeneralSettings(this.settings);
         settingsDiv.appendChild(this.sectionGeneral);
 
         // (2) Languages
@@ -86,11 +93,31 @@ class PopupApp {
         );
 
         settingsDiv.appendChild(DomManager.createElementWithText('h4', chrome.i18n.getMessage('languages')));
+
+        settingsDiv.appendChild(
+            DomManager.createCheckbox(
+                'chk-filter-by-language',
+                settings.isLanguageFilterEnabled(),
+                chrome.i18n.getMessage('filter_by_language'),
+                (ev: Event) => this.updateFilterByLanguage((ev.target as HTMLInputElement).checked),
+            ),
+        );
+
+        settingsDiv.appendChild(
+            DomManager.createCheckbox(
+                'chk-block-selected-languages',
+                settings.isLanguageBlockList(),
+                chrome.i18n.getMessage('block_selected_languages'),
+                (ev: Event) => this.updateFilterByRegularExpression((ev.target as HTMLInputElement).checked),
+            ),
+        );
+
         settingsDiv.appendChild(this.formLanguages);
 
         // (3) Blocked Words
         this.formBlockedWords = DomManager.createForm(() => this.saveBlockedWords(this.blockedWordsInput.value));
         this.formBlockedWords.id = 'popup-form-blocked-words';
+
         this.blockedWordsInput = this.createBlockedWordsTextArea();
         this.buttonSaveBlockedWords = this.createBlockedWordsSaveButton();
 
@@ -100,6 +127,25 @@ class PopupApp {
         );
 
         settingsDiv.appendChild(DomManager.createElementWithText('h4', chrome.i18n.getMessage('blocked_words')));
+
+        settingsDiv.appendChild(
+            DomManager.createCheckbox(
+                'chk-filter-by-word',
+                settings.isWordFilterEnabled(),
+                chrome.i18n.getMessage('filter_by_word'),
+                (ev: Event) => this.updateFilterByWord((ev.target as HTMLInputElement).checked),
+            ),
+        );
+
+        settingsDiv.appendChild(
+            DomManager.createCheckbox(
+                'chk-filter-by-regular-expression',
+                settings.isRegularExpression(),
+                chrome.i18n.getMessage('filter_by_regular_expression'),
+                (ev: Event) => this.updateFilterByRegularExpression((ev.target as HTMLInputElement).checked),
+            ),
+        );
+
         settingsDiv.appendChild(this.formBlockedWords);
 
         // add to the main element
@@ -108,7 +154,7 @@ class PopupApp {
         mainElem.appendChild(footer);
 
         // render dynamic elements
-        this.render(this.settings);
+        this.render();
     }
 
     private createBlockedWordsTextArea(): HTMLTextAreaElement {
@@ -135,7 +181,6 @@ class PopupApp {
      * Clears all dynamic HTML elements.
      */
     private clearElements(): void {
-        DomManager.clearChildElements(this.sectionGeneral);
         DomManager.clearChildElements(this.sectionLanguagesList);
     }
 
@@ -143,26 +188,23 @@ class PopupApp {
      * Renders dynamic HTML elements.
      * @param settings settings to apply
      */
-    private render(settings: Settings): void {
+    private render(): void {
         // general settings
-        this.sectionGeneral.appendChild(
-            DomManager.createCheckbox(
-                'chk-enabled-default',
-                settings.isEnabledDefault(),
-                chrome.i18n.getMessage('enable_by_default'),
-                (ev: Event) => this.updateEnabledDefault((ev.target as HTMLInputElement).checked),
-            ),
-        );
-        this.sectionGeneral.appendChild(
-            DomManager.createCheckbox(
-                'chk-filter-replies',
-                settings.getFilterReplies(),
-                chrome.i18n.getMessage('filter_replies'),
-                (ev: Event) => this.updateFilterReplies((ev.target as HTMLInputElement).checked),
-            ),
-        );
+        (document.getElementById('chk-enabled-default') as HTMLInputElement).checked = this.settings.isEnabledDefault();
+        (document.getElementById(
+            'chk-filter-button-visible',
+        ) as HTMLInputElement).checked = this.settings.isFilterButtonVisible();
+        (document.getElementById('chk-filter-replies') as HTMLInputElement).checked = this.settings.getFilterReplies();
 
         // listed languages
+        (document.getElementById(
+            'chk-filter-by-language',
+        ) as HTMLInputElement).checked = this.settings.isLanguageFilterEnabled();
+
+        (document.getElementById(
+            'chk-block-selected-languages',
+        ) as HTMLInputElement).checked = this.settings.isLanguageBlockList();
+
         this.settings.getListedLanguages().forEach((lang) => this.renderAddedLanguage(lang));
 
         // set unknown language
@@ -170,8 +212,45 @@ class PopupApp {
         if (elem !== undefined) elem.checked = this.settings.getSelectUnknown();
 
         // blocked words
+        (document.getElementById(
+            'chk-filter-by-word',
+        ) as HTMLInputElement).checked = this.settings.isWordFilterEnabled();
+        (document.getElementById(
+            'chk-filter-by-regular-expression',
+        ) as HTMLInputElement).checked = this.settings.isRegularExpression();
+
         this.blockedWordsInput.value = this.settings.getBlockedWords().join('\n');
         this.renderBlockedWordsAddButton();
+    }
+
+    private createGeneralSettings(settings: Settings): HTMLDivElement {
+        const div = document.createElement('div') as HTMLDivElement;
+
+        div.appendChild(
+            DomManager.createCheckbox(
+                'chk-enabled-default',
+                settings.isEnabledDefault(),
+                chrome.i18n.getMessage('enable_by_default'),
+                (ev: Event) => this.updateEnabledDefault((ev.target as HTMLInputElement).checked),
+            ),
+        );
+        div.appendChild(
+            DomManager.createCheckbox(
+                'chk-filter-button-visible',
+                settings.isFilterButtonVisible(),
+                chrome.i18n.getMessage('show_filter_button') + ' (*)',
+                (ev: Event) => this.updateFilterButtonVisible((ev.target as HTMLInputElement).checked),
+            ),
+        );
+        div.appendChild(
+            DomManager.createCheckbox(
+                'chk-filter-replies',
+                settings.getFilterReplies(),
+                chrome.i18n.getMessage('filter_replies'),
+                (ev: Event) => this.updateFilterReplies((ev.target as HTMLInputElement).checked),
+            ),
+        );
+        return div;
     }
 
     /**
@@ -276,12 +355,37 @@ class PopupApp {
     }
 
     /**
+     * Handles a change of the filter button visible.
+     * @param value new value
+     */
+    private updateFilterButtonVisible(value: boolean): void {
+        this.settings.setFilterButtonVisible(value).saveToStorage();
+    }
+
+    /**
      * Handles a change of the filter replies.
      * @param value new value
      */
     private updateFilterReplies(value: boolean): void {
         this.settings.setFilterReplies(value).saveToStorage();
     }
+
+    /**
+     * Handles a change of the filter by language.
+     * @param value new value
+     */
+    private updateFilterByLanguage(value: boolean): void {
+        this.settings.setLanguageFilterEnabled(value).saveToStorage();
+    }
+
+    /**
+     * Handles a change of the block selected languages.
+     * @param value new value
+     */
+    private updateBlockSelectedLanguages(value: boolean): void {
+        this.settings.setLanguageBlockList(value).saveToStorage();
+    }
+
     /**
      * Handles a change of the language setting.
      * @param languageCode language code
@@ -317,6 +421,26 @@ class PopupApp {
         this.renderRemovedLanguage(languageCode);
     }
 
+    /**
+     * Handles a change of the filter by word.
+     * @param value new value
+     */
+    private updateFilterByWord(value: boolean): void {
+        this.settings.setWordFilterEnabled(value).saveToStorage();
+    }
+
+    /**
+     * Handles a change of the filter by regular expression.
+     * @param value new value
+     */
+    private updateFilterByRegularExpression(value: boolean): void {
+        this.settings.setRegularExpression(value).saveToStorage();
+    }
+
+    /**
+     * Handles a change of blocked words.
+     * @param blockedWordsText text of the blocked words
+     */
     private saveBlockedWords(blockedWordsText: string): void {
         this.buttonSaveBlockedWords.disabled = true;
         this.settings.setBlockedWords(blockedWordsText.split('\n')).saveToStorage();
@@ -329,7 +453,7 @@ class PopupApp {
     private resetSetings(): void {
         this.settings = new Settings();
         this.clearElements();
-        this.render(this.settings);
+        this.render();
         this.sectionLanguagesSelect.selectedIndex = 0;
         this.settings.saveToStorage();
     }

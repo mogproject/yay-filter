@@ -8,11 +8,29 @@
     "enable_by_default": {
         "message": "Enable filter by default"
     },
+    "show_filter_button": {
+        "message": "Show filter button"
+    },
+    "page_reload_required": {
+        "message": "Page reload required"
+    },
     "filter_replies": {
         "message": "Filter replies"
     },
     "languages": {
         "message": "Languages"
+    },
+    "filter_by_language": {
+        "message": "Enable language filter"
+    },
+    "filter_by_word": {
+        "message": "Enable word filter"
+    },
+    "block_selected_languages": {
+        "message": "Use as a blocklist"
+    },
+    "filter_by_regular_expression": {
+        "message": "Use regular expressions"
     },
     "unknown": {
         "message": "Unknown"

@@ -8,11 +8,29 @@
     "enable_by_default": {
         "message": "기본으로 활성화"
     },
+    "show_filter_button": {
+        "message": "필터 버튼을 표시"
+    },
+    "page_reload_required": {
+        "message": "페이지 새로 고침 필요"
+    },
     "filter_replies": {
         "message": "회신 필터링"
     },
     "languages": {
         "message": "언어"
+    },
+    "filter_by_language": {
+        "message": "언어 필터 활성화"
+    },
+    "filter_by_word": {
+        "message": "단어 필터 활성화"
+    },
+    "block_selected_languages": {
+        "message": "선택한 언어를 숨기려면"
+    },
+    "filter_by_regular_expression": {
+        "message": "정규식 사용"
     },
     "unknown": {
         "message": "판단 불가"

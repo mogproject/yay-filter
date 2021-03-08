@@ -8,11 +8,29 @@
     "enable_by_default": {
         "message": "デフォルトで有効"
     },
+    "show_filter_button": {
+        "message": "フィルターボタンを表示"
+    },
+    "page_reload_required": {
+        "message": "ページ再読み込みが必要"
+    },
     "filter_replies": {
         "message": "返信もフィルターする"
     },
     "languages": {
         "message": "言語"
+    },
+    "filter_by_language": {
+        "message": "言語フィルターを有効"
+    },
+    "filter_by_word": {
+        "message": "単語フィルターを有効"
+    },
+    "block_selected_languages": {
+        "message": "選択した言語を非表示にする"
+    },
+    "filter_by_regular_expression": {
+        "message": "正規表現で入力"
     },
     "unknown": {
         "message": "判別不能"

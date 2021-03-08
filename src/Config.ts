@@ -6,7 +6,7 @@
 declare const __DEBUG__: string;
 
 export const Config = {
-    version: '0.1.2',
+    version: '0.1.3',
     url: {
         targetUrl: 'www.youtube.com/watch',
         projectUrl: 'https://github.com/mogproject/yay-filter',

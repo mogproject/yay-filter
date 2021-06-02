@@ -1,6 +1,6 @@
 {
     "name": "yay-filter",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Yet another YouTube comment filter",
     "devDependencies": {
         "@types/chrome": "0.0.127",

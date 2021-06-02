@@ -162,7 +162,6 @@ class PopupApp {
         elem.placeholder = chrome.i18n.getMessage('blocked_words_description');
         elem.rows = 3;
         elem.wrap = 'off';
-        elem.maxLength = 500;
         elem.addEventListener('input', () => this.renderBlockedWordsAddButton());
 
         return elem;

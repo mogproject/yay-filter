@@ -4,10 +4,10 @@
     height: 23px;
     color: var(--yt-spec-text-secondary);
     font-family: Roboto, Arial, sans-serif;
-    font-size: var(--ytd-tab-system_-_font-size);
-    font-weight: var(--ytd-tab-system_-_font-weight);
-    letter-spacing: var(--ytd-tab-system_-_letter-spacing);
-    text-transform: var(--ytd-tab-system_-_text-transform);
+    font-size: var(--ytd-tab-system-font-size);
+    font-weight: var(--ytd-tab-system-font-weight);
+    letter-spacing: var(--ytd-tab-system-letter-spacing);
+    text-transform: var(--ytd-tab-system-text-transform);
 
     user-select: none;
     -webkit-user-select: none;
@@ -22,6 +22,15 @@
     margin-top: 46px !important;
     opacity: 0;
     transition: opacity 0.3s;
+    font-size: var(--ytd-thumbnail-attribution_-_font-size);
+    font-weight: var(--ytd-thumbnail-attribution_-_font-weight);
+    line-height: var(--ytd-thumbnail-attribution_-_line-height);
+    letter-spacing: var(--ytd-thumbnail-attribution_-_letter-spacing);
+    text-transform: var(--ytd-thumbnail-attribution_-_text-transform);
+    background-color: var(--paper-tooltip-background, #616161);
+    color: var(--paper-tooltip-text-color, white);
+    padding: 8px;
+    border-radius: 2px;
 }
 
 #yay-filter-container:hover .yay-tooltip {

@@ -6,7 +6,7 @@
 declare const __DEBUG__: string;
 
 export const Config = {
-    version: '0.1.5',
+    version: '0.2.0',
     url: {
         targetUrl: 'www.youtube.com/watch',
         projectUrl: 'https://github.com/mogproject/yay-filter',
@@ -21,7 +21,7 @@ export const Config = {
         },
         selector: {
             // YouTube selector queries
-            ytCommentContainer: 'ytd-comments #header.ytd-item-section-renderer',
+            ytCommentContainer: '#primary ytd-comments #header.ytd-item-section-renderer',
             ytCommentTitle: 'ytd-comments #title.ytd-comments-header-renderer',
             ytCommentContents: 'ytd-comments #contents.ytd-item-section-renderer',
             ytCommentThread: 'ytd-comments ytd-comment-thread-renderer',

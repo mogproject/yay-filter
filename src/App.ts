@@ -113,6 +113,8 @@ export default class App {
      * @param url URL to check
      */
     private verifyUrl(url: string): void {
+        // this.log(`verifyUrl(${url})`);
+
         if (url != Config.url.targetUrl) throw new UnexpectedUrlError(url);
     }
 
@@ -169,10 +171,13 @@ export default class App {
 
         // check if it already exists (this can happen by a browser's "go back" button, etc.)
         const e = DomManager.findCommentHeader();
+        // this.log(String(e));
         if (e != null) return Promise.resolve(e);
 
         const p = new Promise<HTMLElement>((resolve, reject) => {
             const observer = new MutationObserver((m, o) => {
+                // this.log('observer call');
+
                 // check if the comment header exists
                 const elem = DomManager.findCommentHeader();
                 if (elem == null) return;
@@ -181,10 +186,12 @@ export default class App {
                 o.disconnect();
 
                 // return element
+                // this.log('observer finds element');
                 resolve(elem);
             });
             observer.observe(commentContainer, { subtree: false, childList: true });
         });
+        // this.log('watching: ' + String(commentContainer.outerHTML));
         return p;
     }
 
@@ -248,6 +255,8 @@ export default class App {
      * Clears the filter button.
      */
     private clearYayFilterContainer(): void {
+        // this.log(`clearYayFilterContainer()`);
+
         const elem = DomManager.findYayFilterContainer();
         if (elem != null) {
             elem.remove();

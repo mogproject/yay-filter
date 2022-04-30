@@ -1,0 +1,71 @@
+{
+    "filter": {
+        "message": "Фильтр"
+    },
+    "filter_comments": {
+        "message": "Фильтр комментариев"
+    },
+    "enable_by_default": {
+        "message": "Включить фильтр по умолчанию"
+    },
+    "show_filter_button": {
+        "message": "Показывать кнопку фильтра"
+    },
+    "page_reload_required": {
+        "message": "Необходимо перезагрузить страницу"
+    },
+    "filter_replies": {
+        "message": "Фильтр ответов"
+    },
+    "languages": {
+        "message": "Языки"
+    },
+    "filter_by_language": {
+        "message": "Включить фильтр по языкам"
+    },
+    "filter_by_word": {
+        "message": "Включить фильтр по словам"
+    },
+    "block_selected_languages": {
+        "message": "Использовать как чёрный список"
+    },
+    "filter_by_regular_expression": {
+        "message": "Использовать регулярные выражения"
+    },
+    "unknown": {
+        "message": "Unknown"
+    },
+    "select_language": {
+        "message": "─ Выбрать язык ─"
+    },
+    "add_this_language": {
+        "message": "Добавить язык"
+    },
+    "remove_this_language": {
+        "message": "Удалить язык"
+    },
+    "blocked_words": {
+        "message": "Фильтр по словам"
+    },
+    "blocked_words_description": {
+        "message": "По одному выражению на каждой строке"
+    },
+    "clear": {
+        "message": "Очистить"
+    },
+    "save": {
+        "message": "Сохранить"
+    },
+    "save_blocked_words": {
+        "message": "Сохранить список"
+    },
+    "reset_settings": {
+        "message": "Сбросить настройки"
+    },
+    "visit_homepage": {
+        "message": "Домашняя страница"
+    },
+    "donate": {
+        "message": "Пожертвовать $$5"
+    }
+}

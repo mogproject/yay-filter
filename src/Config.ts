@@ -21,7 +21,7 @@ export const Config = {
         },
         selector: {
             // YouTube selector queries
-            ytCommentContainer: 'ytd-comments #header.ytd-item-section-renderer',
+            ytCommentContainer: '#primary ytd-comments #header.ytd-item-section-renderer',
             ytCommentTitle: 'ytd-comments #title.ytd-comments-header-renderer',
             ytCommentContents: 'ytd-comments #contents.ytd-item-section-renderer',
             ytCommentThread: 'ytd-comments ytd-comment-thread-renderer',

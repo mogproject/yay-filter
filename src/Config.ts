@@ -6,7 +6,7 @@
 declare const __DEBUG__: string;
 
 export const Config = {
-    version: '0.2.0',
+    version: '0.2.1',
     url: {
         targetUrl: 'www.youtube.com/watch',
         projectUrl: 'https://github.com/mogproject/yay-filter',
@@ -27,8 +27,8 @@ export const Config = {
             ytCommentThread: 'ytd-comments ytd-comment-thread-renderer',
             ytCommentMain: '#comment',
             ytCommentReplyRoot: '#replies',
-            ytCommentReplyContainer: '#replies #loaded-replies',
-            ytCommentReplyElement: '#replies #loaded-replies ytd-comment-renderer',
+            ytCommentReplyContainer: '#replies #contents',
+            ytCommentReplyElement: '#replies #contents ytd-comment-renderer',
             ytCommentText: '#content-text',
             ytCommentTagName: 'ytd-comment-renderer'.toUpperCase(),
         },
